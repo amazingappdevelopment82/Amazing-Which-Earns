@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AMAZING WATCH EARN • Watch • Discover • Earn</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #060913;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-display { font-family: 'Outfit', sans-serif; }
+    .glass-box {
+      background: rgba(13, 20, 36, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+    }
+    .glass-box-gold {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(15, 23, 42, 0.85));
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    @keyframes sweep-rtl {
+      0% { transform: translateX(150%) skewX(-20deg); opacity: 0; }
+      40% { opacity: 0.6; }
+      100% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+    }
+    .shimmer-sweep::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(270deg, transparent 0%, rgba(255, 255, 255, 0.22) 50%, transparent 100%);
+      pointer-events: none;
+      animation: sweep-rtl 5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #060913; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-40 glass-box border-b border-slate-800/80 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      <!-- Logo -->
+      <div onclick="switchView('home')" class="flex items-center gap-2.5 cursor-pointer select-none">
+        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 font-black text-slate-950 text-base">
+          ▶
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-sm sm:text-base tracking-tight font-display text-white">AMAZING</span>
+            <span class="font-black text-xs sm:text-sm px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-display">EARN</span>
+          </div>
+          <span class="text-[9px] text-slate-400 hidden sm:block tracking-widest uppercase">Watch • Discover • Earn</span>
+        </div>
+      </div>
+
+      <!-- Quick Balances & Profile Button -->
+      <div class="flex items-center gap-2">
+        <div onclick="switchView('profile')" class="cursor-pointer px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/40 flex items-center gap-2 transition-all">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+          <span id="headerPoints" class="text-xs font-bold text-amber-400 font-mono">0 PTS</span>
+          <span class="text-slate-500 text-xs">|</span>
+          <span id="headerUsd" class="text-xs font-bold text-emerald-400 font-mono">$0.00</span>
+        </div>
+        
+        <button onclick="switchView('profile')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 flex items-center gap-1.5">
+          <span>👤 প্রোফাইল</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main id="mainContainer" class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 pb-24">
+    <!-- Home Feed View -->
+    <section id="view-home" class="space-y-6">
+      <!-- Spotlight Banner -->
+      <div class="relative rounded-3xl p-6 sm:p-8 overflow-hidden glass-box-gold border border-amber-500/30 shimmer-sweep">
+        <div class="max-w-xl space-y-3 relative z-10">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-bold">
+            ✨ ভেরিফাইড রিওয়ার্ডস প্ল্যাটফর্ম
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-black text-white font-display leading-tight">
+            ভিডিও দেখুন এবং প্রতি ভিউতে <span class="text-amber-400">৫ পয়েন্ট</span> অর্জন করুন!
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-300">
+            ৫০০০ পয়েন্টে ১ ডলার। ৫০ ডলার জমলে সরাসরি বিকাশ, নগদ অথবা ব্যাংকে ক্যাশআউট করুন।
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button onclick="openPlayer(appState.videos[0])" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20">
+              ▶ এখনই ভিডিও দেখা শুরু করুন
+            </button>
+            <button onclick="switchView('profile')" class="px-4 py-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-bold text-xs sm:text-sm border border-slate-700">
+              💰 আমার ওয়ালেট ও ক্যাশআউট
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-amber-500 text-slate-950" data-cat="all">সব ভিডিও</button>
+        <button onclick="filterCategory('Drama')" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-800" data-cat="Drama">🎭 ড্রামা ও সিরিজ</button>
+        <button onclick="filterCategory('Songs')" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-800" data-cat="Songs">🎵 গান ও মিউজিক</button>
+        <button onclick="filterCategory('Islamic / Waz')" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-800" data-cat="Islamic / Waz">🕌 ইসলামিক ও ওয়াজ</button>
+        <button onclick="filterCategory('News')" class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-800" data-cat="News">📰 খবর ও ইতিহাস</button>
+      </div>
+
+      <!-- Video Grid -->
+      <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- User Profile / Wallet View -->
+    <section id="view-profile" class="hidden space-y-6">
+      <div class="p-6 rounded-3xl glass-box border border-slate-700 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-white font-display">ইউজার প্রোফাইল ও আর্থিক লেজার</h2>
+            <p class="text-xs text-slate-400">প্রতিটি ভেরিফাইড অ্যাড দেখার জন্য আপনার অর্জিত পয়েন্ট ও ক্যাশ ব্যালেন্স</p>
+          </div>
+          <div class="text-xs px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
+            নিয়ম: ৫,০০০ পয়েন্ট = $১.০০ USD | সর্বনিম্ন পে-আউট $৫০.০০
+          </div>
+        </div>
+
+        <!-- 4 Stat Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400">মোট পয়েন্ট</span>
+            <div id="statPoints" class="text-xl sm:text-2xl font-black text-amber-400 font-mono mt-1">0</div>
+            <button onclick="convertPointsModal()" class="mt-2 text-[10px] text-amber-400 hover:underline">ডলারে রূপান্তর করুন ↻</button>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400">উত্তোলনযোগ্য ব্যালেন্স</span>
+            <div id="statUsd" class="text-xl sm:text-2xl font-black text-emerald-400 font-mono mt-1">$0.00</div>
+            <span class="text-[9px] text-slate-500">USD Available</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-cyan-500/30">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400">অপেক্ষমাণ (Pending)</span>
+            <div id="statPending" class="text-xl sm:text-2xl font-black text-cyan-400 font-mono mt-1">$0.00</div>
+            <span class="text-[9px] text-slate-500">এডমিন রিভিউতে</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-purple-500/30">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400">পরিশোধিত (Paid)</span>
+            <div id="statPaid" class="text-xl sm:text-2xl font-black text-purple-400 font-mono mt-1">$0.00</div>
+            <span class="text-[9px] text-slate-500">সফল উত্তোলন</span>
+          </div>
+        </div>
+
+        <!-- Withdrawal Form -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>💳 ক্যাশআউট / পে-আউট রিকোয়েস্ট করুন (বিকাশ / নগদ / ব্যাংক)</span>
+          </h3>
+          <form onsubmit="handleWithdrawal(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-[11px] text-slate-400 font-medium">উত্তোলনের পরিমাণ ($ USD)</label>
+                <input type="number" id="wdrAmount" step="1" min="50" placeholder="মিনিমাম 50" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400">
+                <span class="text-[9px] text-amber-400">সর্বনিম্ন $৫০.০০ ডলার হতে হবে</span>
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 font-medium">পেমেন্ট মেথড</label>
+                <select id="wdrMethod" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400">
+                  <option value="bKash">বিকাশ (bKash Personal)</option>
+                  <option value="Nagad">নগদ (Nagad Personal)</option>
+                  <option value="Bank">ব্যাংক ট্রান্সফার (Bank Transfer)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 font-medium">অ্যাকাউন্ট নাম্বার / ব্যাংক বিবরণ</label>
+                <input type="text" id="wdrAccount" placeholder="017xxxxxxxx বা ব্যাংক বিবরণ" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400">
+              </div>
+            </div>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm">
+              উত্তোলন রিকোয়েস্ট সাবমিট করুন
+            </button>
+          </form>
+        </div>
+
+        <!-- Withdrawal History Table -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-slate-300">আমার পে-আউট হিস্ট্রি</h4>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase">
+                <tr>
+                  <th class="p-2.5">তারিখ</th>
+                  <th class="p-2.5">মেথড ও একাউন্ট</th>
+                  <th class="p-2.5">পরিমাণ</th>
+                  <th class="p-2.5">স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody id="wdrHistoryTable" class="divide-y divide-slate-800 bg-slate-950/60">
+                <!-- Loaded via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin Panel View -->
+    <section id="view-admin" class="hidden space-y-6">
+      <div class="p-6 rounded-3xl glass-box border border-red-500/30 space-y-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🛡️</span>
+            <div>
+              <h2 class="text-xl font-black text-white font-display">এডমিন মাস্টার কন্ট্রোল সেন্টার</h2>
+              <p class="text-xs text-slate-400">এডমিন ইমেইল: <span class="text-amber-400 font-mono">jmia55573@gmail.com</span></p>
+            </div>
+          </div>
+          <button onclick="switchView('home')" class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+            অ্যাপ ভিউতে ফিরে যান ✕
+          </button>
+        </div>
+
+        <!-- Admin Quick Actions -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button onclick="openAdminModal('video')" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500 text-left">
+            <span class="text-base">🎬</span>
+            <div class="font-bold text-white text-sm mt-1">নতুন ভিডিও আপলোড করুন</div>
+            <div class="text-[11px] text-slate-400">ইউটিউব লিঙ্ক ও ক্যাটাগরি যুক্ত করুন</div>
+          </button>
+          <button onclick="switchAdminTab('withdrawals')" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500 text-left">
+            <span class="text-base">💵</span>
+            <div class="font-bold text-white text-sm mt-1">ইউজার পে-আউট ও রিসিভ করুন</div>
+            <div class="text-[11px] text-slate-400">বিকাশ/নগদ টাকা পরিশোধ নিশ্চিতকরণ</div>
+          </button>
+          <button onclick="switchAdminTab('appcreator')" class="p-4 rounded-2xl bg-slate-900 border border-amber-500 text-left">
+            <span class="text-base">📋</span>
+            <div class="font-bold text-amber-400 text-sm mt-1">Appcreator24 & GitHub কোড</div>
+            <div class="text-[11px] text-slate-400">এক ক্লিকে সম্পূর্ণ সিঙ্গেল কোড কপি করুন</div>
+          </button>
+        </div>
+
+        <!-- Admin Content: Video Manager -->
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white">ভিডিও তালিকা ও জায়গা খালি করার জন্য ডিলিট কন্ট্রোল</h3>
+            <span class="text-[11px] text-slate-400">অপ্রয়োজনীয় বা পুরাতন ভিডিও ডিলিট করলে মেমোরি ও স্টোরেজ স্থায়ীভাবে খালি হয়ে যাবে।</span>
+          </div>
+
+          <div id="adminVideoList" class="divide-y divide-slate-800 max-h-80 overflow-y-auto">
+            <!-- Video rows with Delete button rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Admin Content: User Withdrawals -->
+        <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <h3 class="text-sm font-bold text-white">ইউজারদের পে-আউট রিকোয়েস্ট (টাকা পরিশোধ করে রিসিভ সাবমিট করুন)</h3>
+          <div id="adminWithdrawalsList" class="space-y-2 max-h-80 overflow-y-auto">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- VIDEO PLAYER MODAL WITH 8s AD COUNTDOWN -->
+  <div id="playerModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-3">
+    <div class="w-full max-w-3xl glass-box rounded-3xl overflow-hidden border border-slate-700 space-y-3 p-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <span id="playerTitle" class="text-sm font-bold text-white truncate max-w-md">ভিডিও প্লেয়ার</span>
+        <button onclick="closePlayer()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <!-- YouTube Iframe -->
+      <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden">
+        <iframe id="videoIframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+
+      <!-- 8s Reward Verification Progress Bar -->
+      <div class="p-4 rounded-2xl bg-slate-900 border border-amber-500/40 space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold">
+          <span class="text-amber-400">🛡️ ভেরিফাইড অ্যাড ইমপ্রেশন ট্র্যাকার (+৫ পয়েন্ট)</span>
+          <span id="adCountdownText" class="text-white font-mono">অ্যাড রিওয়ার্ড ট্র্যাকিং...</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+          <div id="adProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-1000 w-0"></div>
+        </div>
+        <div id="adRewardBadge" class="text-[11px] text-slate-400">
+          সঠিক রিওয়ার্ড পাওয়ার জন্য ভিডিওটি কমপক্ষে ৮ সেকেন্ড মনোযোগ সহকারে দেখুন।
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN MODAL (TRIGGERED BY THE LOCK BUTTON IN FOOTER) -->
+  <div id="adminLoginModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md glass-box rounded-3xl p-6 border border-amber-500/40 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🔒</span>
+          <h3 class="font-bold text-white text-base font-display">এডমিন গেটওয়ে লগইন</h3>
+        </div>
+        <button onclick="closeAdminLoginModal()" class="text-slate-400 hover:text-white text-sm">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-300">
+        এডমিন কন্ট্রোল সেন্টারে প্রবেশের জন্য নির্ধারিত ইমেইল ও পাসওয়ার্ড প্রদান করুন।
+      </p>
+
+      <form onsubmit="handleAdminLogin(event)" class="space-y-3">
+        <div>
+          <label class="text-[11px] text-slate-400 font-medium">এডমিন ইমেইল</label>
+          <input type="email" id="adminEmailInput" value="jmia55573@gmail.com" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white font-mono">
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-400 font-medium">এডমিন পাসওয়ার্ড (bahadur@2025#)</label>
+          <input type="password" id="adminPassInput" placeholder="bahadur@2025#" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+        </div>
+        <div class="flex items-center gap-2 pt-2">
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
+            এডমিন প্যানেলে প্রবেশ করুন
+          </button>
+          <button type="button" onclick="closeAdminLoginModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs">
+            বাতিল
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD VIDEO MODAL (ADMIN) -->
+  <div id="addVideoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg glass-box rounded-3xl p-6 border border-slate-700 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="font-bold text-white text-base">নতুন ভিডিও যুক্ত করুন</h3>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form onsubmit="handleAdminAddVideo(event)" class="space-y-3">
+        <div>
+          <label class="text-[11px] text-slate-400">ভিডিও শিরোনাম</label>
+          <input type="text" id="newVidTitle" required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-400">ইউটিউব ভিডিও লিঙ্ক (বা এম্বেড URL)</label>
+          <input type="text" id="newVidUrl" placeholder="https://www.youtube.com/watch?v=..." required class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[11px] text-slate-400">ক্যাটাগরি</label>
+            <select id="newVidCat" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+              <option value="Drama">Drama (নাটক)</option>
+              <option value="Songs">Songs (গান)</option>
+              <option value="Islamic / Waz">Islamic / Waz (ওয়াজ)</option>
+              <option value="News">News (সংবাদ ও ইতিহাস)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">সময়কাল (যেমন 15:20)</label>
+            <input type="text" id="newVidDuration" value="12:45" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs mt-2">
+          ভিডিও পাবলিশ করুন
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PERSISTENT FOOTER WITH THE MANDATORY PADLOCK (LOCK) BUTTON -->
+  <footer class="mt-auto border-t border-slate-800/80 bg-[#04060d] py-6 px-4">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <!-- @ AMAZING WATCH EARN ALL RIGHTS RESERVED WITH PADLOCK BUTTON -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs sm:text-sm text-slate-400">
+          © AMAZING WATCH EARN • ALL RIGHTS RESERVED
+        </span>
+        <!-- THE PADLOCK (LOCK) BUTTON NEXT TO @ AMAZING WATCH EARN -->
+        <button 
+          id="footerAdminLockBtn"
+          onclick="openAdminLoginModal()" 
+          title="এডমিন সিকিউরিটি গেটওয়ে" 
+          class="w-7 h-7 rounded-lg bg-slate-900 hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 border border-slate-800 hover:border-amber-500/40 flex items-center justify-center transition-all shadow-sm"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-width="2"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="text-[11px] text-slate-500">
+        ১ ভিউ = ৫ পয়েন্ট | ৫,০০০ পয়েন্ট = $১.০০ USD | সর্বনিম্ন উত্তোলন = $৫০.০০ (বিকাশ / নগদ / ব্যাংক)
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT APPLICATION CORE ENGINE -->
+  <script>
+    // Initial Seed Data & State
+    const STORAGE_KEY = 'AWE_STANDALONE_V1';
+    let appState = {
+      points: 1250,
+      usdBalance: 0.25,
+      pendingBalance: 0.0,
+      paidBalance: 0.0,
+      role: 'user',
+      activeCategory: 'all',
+      videos: [
+        {
+          id: 'v1',
+          title: 'Echoes of Heritage: The Grand Silk Route Documentary',
+          category: 'News',
+          duration: '14:20',
+          url: 'https://www.youtube-nocookie.com/embed/jfKfPfyJRdk',
+          thumbnail: 'https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=800&q=80'
+        },
+        {
+          id: 'v2',
+          title: 'The Silent Script: Emotional Drama Episode 01',
+          category: 'Drama',
+          duration: '22:15',
+          url: 'https://www.youtube-nocookie.com/embed/L_LUpnjgPso',
+          thumbnail: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=800&q=80'
+        },
+        {
+          id: 'v3',
+          title: 'Acoustic Serenade: Relaxing Melodies & Masterpiece',
+          category: 'Songs',
+          duration: '04:50',
+          url: 'https://www.youtube-nocookie.com/embed/5qap5aO4i9A',
+          thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80'
+        },
+        {
+          id: 'v4',
+          title: 'The Path of Righteousness: Inspirational Islamic Lecture',
+          category: 'Islamic / Waz',
+          duration: '28:10',
+          url: 'https://www.youtube-nocookie.com/embed/kJQP7kiw5Fk',
+          thumbnail: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&w=800&q=80'
+        }
+      ],
+      withdrawals: []
+    };
+
+    // Load from local storage if available
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        appState = { ...appState, ...parsed };
+      }
+    } catch(e) {}
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch(e) {}
+      updateUi();
+    }
+
+    // Switch Views
+    function switchView(viewName) {
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-profile').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+
+      if (viewName === 'home') document.getElementById('view-home').classList.remove('hidden');
+      else if (viewName === 'profile') document.getElementById('view-profile').classList.remove('hidden');
+      else if (viewName === 'admin') document.getElementById('view-admin').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Filter Categories
+    function filterCategory(cat) {
+      appState.activeCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = 'cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-amber-500 text-slate-950';
+        } else {
+          btn.className = 'cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-300 border border-slate-800';
+        }
+      });
+      renderVideos();
+    }
+
+    // Render Videos
+    function renderVideos() {
+      const grid = document.getElementById('videoGrid');
+      grid.innerHTML = '';
+      const filtered = appState.activeCategory === 'all' 
+        ? appState.videos 
+        : appState.videos.filter(v => v.category.toLowerCase().includes(appState.activeCategory.toLowerCase()));
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-3 text-center py-10 text-slate-500 text-xs">এই ক্যাটাগরিতে কোন ভিডিও নেই</div>';
+        return;
+      }
+
+      filtered.forEach(vid => {
+        const card = document.createElement('div');
+        card.className = 'glass-box rounded-2xl overflow-hidden hover:border-amber-500/40 transition-all cursor-pointer group';
+        card.onclick = () => openPlayer(vid);
+        card.innerHTML = `
+          <div class="relative aspect-video bg-slate-950 overflow-hidden">
+            <img src="${vid.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">${vid.duration}</div>
+            <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500/90 text-slate-950 text-[10px] font-bold">+৫ পয়েন্ট</div>
+          </div>
+          <div class="p-3.5 space-y-1.5">
+            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">${vid.category}</span>
+            <h3 class="text-xs sm:text-sm font-bold text-white line-clamp-2">${vid.title}</h3>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+              <span>ভেরিফাইড অ্যাড রিওয়ার্ড</span>
+              <span class="text-amber-400 font-bold">▶ দেখুন</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Video Player & Countdown Timer
+    let countdownInterval = null;
+    function openPlayer(vid) {
+      if (!vid) return;
+      document.getElementById('playerTitle').innerText = vid.title;
+      document.getElementById('videoIframe').src = vid.url.includes('embed') ? vid.url : 'https://www.youtube-nocookie.com/embed/jfKfPfyJRdk';
+      document.getElementById('playerModal').classList.remove('hidden');
+
+      // Start 8-second verification countdown
+      let remaining = 8;
+      const bar = document.getElementById('adProgressBar');
+      const text = document.getElementById('adCountdownText');
+      const badge = document.getElementById('adRewardBadge');
+      bar.style.width = '0%';
+      text.innerText = remaining + ' সেকেন্ড বাকি...';
+      badge.innerText = 'অ্যাড ইমপ্রেশন ভেরিফাই হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...';
+      badge.className = 'text-[11px] text-slate-400';
+
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        remaining -= 1;
+        const progress = ((8 - remaining) / 8) * 100;
+        bar.style.width = progress + '%';
+        text.innerText = remaining > 0 ? remaining + ' সেকেন্ড বাকি...' : 'সম্পন্ন!';
+
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+          appState.points += 5;
+          saveState();
+          badge.innerText = 'অভিনন্দন! ৫ পয়েন্ট আপনার অ্যাকাউন্টে জমা হয়েছে 🎉';
+          badge.className = 'text-[11px] text-emerald-400 font-bold';
+        }
+      }, 1000);
+    }
+
+    function closePlayer() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      document.getElementById('videoIframe').src = '';
+      document.getElementById('playerModal').classList.add('hidden');
+    }
+
+    // Points Conversion Modal (5000 points = $1.00)
+    function convertPointsModal() {
+      if (appState.points < 100) {
+        alert('পয়েন্ট ডলারে কনভার্ট করতে কমপক্ষে ১০০ পয়েন্ট লাগবে।');
+        return;
+      }
+      const pts = prompt('কত পয়েন্ট ডলারে রূপান্তর করতে চান? (৫০০০ পয়েন্ট = $১.০০ USD):', appState.points);
+      const num = parseInt(pts);
+      if (num && num > 0 && num <= appState.points) {
+        const usd = (num / 5000);
+        appState.points -= num;
+        appState.usdBalance = Number((appState.usdBalance + usd).toFixed(4));
+        saveState();
+        alert(num + ' পয়েন্ট সফলভাবে $' + usd.toFixed(2) + ' ডলারে কনভার্ট করা হয়েছে!');
+      }
+    }
+
+    // Handle User Withdrawal ($50 minimum)
+    function handleWithdrawal(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('wdrAmount').value);
+      const method = document.getElementById('wdrMethod').value;
+      const account = document.getElementById('wdrAccount').value;
+
+      if (amount < 50) {
+        alert('সর্বনিম্ন পে-আউট $৫০.০০ ডলার!');
+        return;
+      }
+      if (appState.usdBalance < amount) {
+        alert('আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই। বর্তমান ব্যালেন্স: $' + appState.usdBalance.toFixed(2));
+        return;
+      }
+
+      appState.usdBalance = Number((appState.usdBalance - amount).toFixed(4));
+      appState.pendingBalance = Number((appState.pendingBalance + amount).toFixed(4));
+
+      const req = {
+        id: 'wdr-' + Date.now(),
+        amount: amount,
+        method: method,
+        account: account,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('bn-BD')
+      };
+      appState.withdrawals.unshift(req);
+      saveState();
+
+      alert('আপনার $' + amount.toFixed(2) + ' ডলার উত্তোলনের রিকোয়েস্ট জমা হয়েছে! এডমিন যাচাই করে দ্রুত টাকা পরিশোধ করবেন।');
+      document.getElementById('wdrAmount').value = '';
+      document.getElementById('wdrAccount').value = '';
+    }
+
+    // Admin Lock & Login Logic
+    function openAdminLoginModal() {
+      document.getElementById('adminLoginModal').classList.remove('hidden');
+    }
+    function closeAdminLoginModal() {
+      document.getElementById('adminLoginModal').classList.add('hidden');
+    }
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmailInput').value.trim();
+      const pass = document.getElementById('adminPassInput').value.trim();
+
+      // Authenticate with admin password (bahadur@2025#) or secret code
+      if (pass === 'bahadur@2025#' || (email.toLowerCase() === 'jmia55573@gmail.com' && (pass === 'bahadur@2025#' || pass === '786'))) {
+        closeAdminLoginModal();
+        switchView('admin');
+        renderAdminVideos();
+        renderAdminWithdrawals();
+        alert('এডমিন প্যানেলে সফলভাবে প্রবেশ করেছেন!');
+      } else {
+        alert('ভুল এডমিন পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন: bahadur@2025#');
+      }
+    }
+
+    // Admin Video Manager (Upload & Delete to save space)
+    function openAdminModal(type) {
+      if (type === 'video') document.getElementById('addVideoModal').classList.remove('hidden');
+    }
+    function closeAdminModal() {
+      document.getElementById('addVideoModal').classList.add('hidden');
+    }
+    function handleAdminAddVideo(e) {
+      e.preventDefault();
+      const title = document.getElementById('newVidTitle').value;
+      let url = document.getElementById('newVidUrl').value;
+      const cat = document.getElementById('newVidCat').value;
+      const dur = document.getElementById('newVidDuration').value;
+
+      // Extract YouTube embed URL
+      if (url.includes('watch?v=')) {
+        const id = url.split('watch?v=')[1].split('&')[0];
+        url = 'https://www.youtube-nocookie.com/embed/' + id;
+      }
+
+      appState.videos.unshift({
+        id: 'vid-' + Date.now(),
+        title: title,
+        url: url,
+        category: cat,
+        duration: dur,
+        thumbnail: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80'
+      });
+      saveState();
+      closeAdminModal();
+      renderAdminVideos();
+      renderVideos();
+      alert('নতুন ভিডিও সফলভাবে আপলোড করা হয়েছে!');
+    }
+
+    function deleteVideoAdmin(id) {
+      if (confirm('আপনি কি নিশ্চিত এই ভিডিওটি স্থায়ীভাবে মুছে ফেলতে চান? এতে স্টোরেজের জায়গা পুরোপুরি খালি হয়ে যাবে।')) {
+        appState.videos = appState.videos.filter(v => v.id !== id);
+        saveState();
+        renderAdminVideos();
+        renderVideos();
+        alert('ভিডিওটি ডিলিট করে জায়গা সম্পূর্ণ খালি করা হয়েছে!');
+      }
+    }
+
+    function renderAdminVideos() {
+      const container = document.getElementById('adminVideoList');
+      if (!container) return;
+      container.innerHTML = '';
+      appState.videos.forEach(v => {
+        const row = document.createElement('div');
+        row.className = 'py-2.5 flex items-center justify-between text-xs text-slate-300';
+        row.innerHTML = `
+          <div class="truncate max-w-sm">
+            <span class="text-amber-400 font-bold">[${v.category}]</span> ${v.title}
+          </div>
+          <button onclick="deleteVideoAdmin('${v.id}')" class="px-2.5 py-1 rounded bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white text-[11px] font-bold transition-all">
+            মুছুন (ডিলিট)
+          </button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // Admin Payout Approval (টাকা পরিশোধ করে রিসিভ)
+    function approveWithdrawalAdmin(id) {
+      const w = appState.withdrawals.find(x => x.id === id);
+      if (w) {
+        w.status = 'Paid';
+        appState.pendingBalance = Math.max(0, appState.pendingBalance - w.amount);
+        appState.paidBalance += w.amount;
+        saveState();
+        renderAdminWithdrawals();
+        alert('পে-আউট সফলভাবে পরিশোধ ও রিসিভ মার্ক করা হয়েছে!');
+      }
+    }
+
+    function renderAdminWithdrawals() {
+      const list = document.getElementById('adminWithdrawalsList');
+      if (!list) return;
+      list.innerHTML = '';
+      if (appState.withdrawals.length === 0) {
+        list.innerHTML = '<div class="text-xs text-slate-500 py-4">কোন পে-আউট রিকোয়েস্ট পেন্ডিং নেই।</div>';
+        return;
+      }
+      appState.withdrawals.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs';
+        item.innerHTML = `
+          <div>
+            <div class="font-bold text-white">$${w.amount.toFixed(2)} USD - ${w.method}</div>
+            <div class="text-[11px] text-slate-400">একাউন্ট: ${w.account} • ${w.date}</div>
+            <div class="text-[10px] text-amber-400 font-bold">স্ট্যাটাস: ${w.status}</div>
+          </div>
+          ${w.status === 'Pending' ? `
+            <button onclick="approveWithdrawalAdmin('${w.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">
+              টাকা পরিশোধ ও রিসিভ সাবমিট
+            </button>
+          ` : `
+            <span class="text-emerald-400 text-xs font-bold">পরিশোধিত ✓</span>
+          `}
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Update UI Elements
+    function updateUi() {
+      document.getElementById('headerPoints').innerText = appState.points.toLocaleString() + ' PTS';
+      document.getElementById('headerUsd').innerText = '$' + appState.usdBalance.toFixed(2);
+      document.getElementById('statPoints').innerText = appState.points.toLocaleString();
+      document.getElementById('statUsd').innerText = '$' + appState.usdBalance.toFixed(2);
+      document.getElementById('statPending').innerText = '$' + appState.pendingBalance.toFixed(2);
+      document.getElementById('statPaid').innerText = '$' + appState.paidBalance.toFixed(2);
+
+      // Render history table
+      const tbody = document.getElementById('wdrHistoryTable');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (appState.withdrawals.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 text-xs">এখনও কোন উত্তোলন রিকোয়েস্ট নেই</td></tr>';
+        } else {
+          appState.withdrawals.forEach(w => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="p-2.5 text-slate-400">${w.date}</td>
+              <td class="p-2.5 text-white">${w.method} (${w.account})</td>
+              <td class="p-2.5 text-emerald-400 font-bold">$${w.amount.toFixed(2)}</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${w.status === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${w.status}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+    }
+
+    // Init App
+    filterCategory('all');
+    updateUi();
+  </script>
+</body>
+</html>
