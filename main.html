@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Amazing Monetiz - Watch, Publish & Monetize</title>
+  <meta name="description" content="Watch YouTube videos & vertical reels, publish content, earn 5 points per 10s ad, get verified badges, and monetize.">
+  
+  <!-- Google Fonts: Inter & Hind Siliguri -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hind Siliguri', 'sans-serif'],
+            display: ['Inter', 'Hind Siliguri', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM 18 (Loaded from reliable CDN with fallback) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel Standalone -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #060911;
+      color: #f1f5f9;
+      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .sweep-rtl {
+      position: relative;
+      overflow: hidden;
+    }
+    .sweep-rtl::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -150%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to left, transparent, rgba(6, 182, 212, 0.15), transparent);
+      animation: sweepRtlAnim 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      pointer-events: none;
+    }
+    @keyframes sweepRtlAnim {
+      0% { right: -100%; }
+      50% { right: 150%; }
+      100% { right: 150%; }
+    }
+    /* Hide scrollbars for clean vertical reels swipe */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #060911;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+  </style>
+</head>
+<body class="selection:bg-cyan-500 selection:text-black">
+  <div id="root">
+    <!-- Friendly Initial Loading Screen -->
+    <div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#060911;color:#38bdf8;font-family:sans-serif;flex-direction:column;gap:12px;">
+      <div style="width:40px;height:40px;border:3px solid #0284c7;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;"></div>
+      <div style="font-weight:bold;font-size:16px;">Amazing Monetiz</div>
+      <div style="font-size:12px;color:#94a3b8;">লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন</div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>
+  </div>
+
+  <script type="text/babel" data-presets="react,env">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // SVG Icons
+    const Play = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    );
+    const Pause = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    );
+    const X = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    );
+    const LogOut = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    );
+    const CheckCircle2 = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+    );
+    const Smartphone = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+    );
+    const Coins = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="m7 6 2 2-2 2"/></svg>
+    );
+    const Home = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    );
+    const Film = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+    );
+    const Music = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    );
+    const UserIcon = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    );
+    const UserCheck = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+    );
+    const Upload = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    );
+    const Trash2 = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+    );
+    const ExternalLink = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    );
+    const BadgeCheck = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+    );
+    const Lock = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    );
+    const Heart = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    );
+    const MessageCircle = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+    );
+    const Share2 = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    );
+    const Volume2 = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+    );
+    const VolumeX = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
+    );
+    const ChevronUp = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>
+    );
+    const ChevronDown = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+    );
+    const Sparkles = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+    );
+    const Tv = ({ className = "w-4 h-4" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+    );
+
+    // Initial Platform Videos (Embedded from live platform database)
+    const INITIAL_VIDEOS = [{"id":"short-1-tariqul","title":"Mind-Blowing Quick Life Hacks & Tricks #Shorts","category":"YouTube Shorts","youtubeId":"dt9EuQcAA0c","thumbnail":"https://img.youtube.com/vi/dt9EuQcAA0c/hqdefault.jpg","duration":"0:45","views":14500,"publisherName":"Tariqul Islam","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"short-2-creator","title":"Unbelievable 60-Second Magic Illusion Revealed #Shorts","category":"YouTube Shorts","youtubeId":"zIb-W0tELV4","thumbnail":"https://img.youtube.com/vi/zIb-W0tELV4/hqdefault.jpg","duration":"0:58","views":14827,"publisherName":"VisualScene Studio","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"short-3-cinema","title":"Epic Thriller Climax Scene in 4K HDR #Shorts","category":"YouTube Shorts","youtubeId":"yRXvvMx54AE","thumbnail":"https://img.youtube.com/vi/yRXvvMx54AE/hqdefault.jpg","duration":"0:50","views":15154,"publisherName":"Cinema Pulse","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"short-4-music","title":"Top Acoustic Melody Guitar Solo #Shorts","category":"YouTube Shorts","youtubeId":"vJLPFfM02Uo","thumbnail":"https://img.youtube.com/vi/vJLPFfM02Uo/hqdefault.jpg","duration":"0:35","views":15481,"publisherName":"Melodies Studio","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"short-5-food","title":"Super Satisfying Street Food Making #Shorts","category":"YouTube Shorts","youtubeId":"wIaVPju5L1c","thumbnail":"https://img.youtube.com/vi/wIaVPju5L1c/hqdefault.jpg","duration":"0:42","views":15808,"publisherName":"Gourmet Express","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"short-6-waz","title":"Valuable Islamic Life Lessons in 60s #Shorts","category":"YouTube Shorts","youtubeId":"HtcZU7TqE_g","thumbnail":"https://img.youtube.com/vi/HtcZU7TqE_g/hqdefault.jpg","duration":"0:59","views":16135,"publisherName":"Noor Islamic Media","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-1-dt9EuQcAA0c","title":"মাস্টারমাইন্ড | পর্ব ০৩ | Rafsun Imtiaj Shanto | Samiha Akhter |  New Bangla Natok 2026","category":"Drama","youtubeId":"dt9EuQcAA0c","thumbnail":"https://img.youtube.com/vi/dt9EuQcAA0c/hqdefault.jpg","duration":"15:20","views":16462,"publisherName":"90 Minutes Film","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-2-zIb-W0tELV4","title":"এখানেই শেষ নয় | Ekhanei Shesh Noy | Jovan | Naznin Niha | Exclusive Bangla Natok 2026","category":"Drama","youtubeId":"zIb-W0tELV4","thumbnail":"https://img.youtube.com/vi/zIb-W0tELV4/hqdefault.jpg","duration":"15:20","views":16789,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-3-yRXvvMx54AE","title":"SHARK RAMPAGE 🦈🔥| Trapped at Sea With Deadly Sharks | Hollywood Action Thriller Movie In English","category":"Movies","youtubeId":"yRXvvMx54AE","thumbnail":"https://img.youtube.com/vi/yRXvvMx54AE/hqdefault.jpg","duration":"15:20","views":17116,"publisherName":"Blockbuster English Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-4-vJLPFfM02Uo","title":"Bishonno Megh | বিষন্ন মেঘ | Zakia Bari Mamo | Irfan Sajjad | Sadia Ayman | Chayanika New Natok 2026","category":"Drama","youtubeId":"vJLPFfM02Uo","thumbnail":"https://img.youtube.com/vi/vJLPFfM02Uo/hqdefault.jpg","duration":"15:20","views":17443,"publisherName":"Laser Vision Natok","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-5-3ldnJ5EnNZ8","title":"Tere_Bina_artists_babu_bahadur_jeni_original_official_audio_music_video_v1_bahadur_media","category":"Songs","youtubeId":"3ldnJ5EnNZ8","thumbnail":"https://img.youtube.com/vi/3ldnJ5EnNZ8/hqdefault.jpg","duration":"15:20","views":17770,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-6-HtcZU7TqE_g","title":"PURSUIT MISSION :: (2026) Jason Statham | Full Action Movie | Full HD","category":"Drama","youtubeId":"HtcZU7TqE_g","thumbnail":"https://img.youtube.com/vi/HtcZU7TqE_g/hqdefault.jpg","duration":"15:20","views":18097,"publisherName":"ZED Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-7-wGh5oyhSLwQ","title":"THE MUMMY KING 2 | An Ancient Curse Awakens in the Mummy's Tomb | Hollywood Action Adventure Movie","category":"Movies","youtubeId":"wGh5oyhSLwQ","thumbnail":"https://img.youtube.com/vi/wGh5oyhSLwQ/hqdefault.jpg","duration":"15:20","views":18424,"publisherName":"Blockbuster English Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-8-SoadM0-lTjk","title":"Bhabi Amar Janer Jan | ভাবি আমার জানের জান | Shanto & Alongkar | SM Canvas | Bangla Music Video 2026","category":"Songs","youtubeId":"SoadM0-lTjk","thumbnail":"https://img.youtube.com/vi/SoadM0-lTjk/hqdefault.jpg","duration":"15:20","views":18751,"publisherName":"SM Canvas","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-9-ltIs1BrXVBY","title":"Hollywood Hit Movie In Hindi Dubbed | Hollywood Adventure Movie | Battle Scars | Kit Lang | HD Movie","category":"Movies","youtubeId":"ltIs1BrXVBY","thumbnail":"https://img.youtube.com/vi/ltIs1BrXVBY/hqdefault.jpg","duration":"15:20","views":19078,"publisherName":"Sur Movies Hollywood","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-10-46AIcgkdlIY","title":"Seedance 2.5 FREE 🤯 | 30 Sec AI Video Without Watermark | Dola AI Trick","category":"Entertainment","youtubeId":"46AIcgkdlIY","thumbnail":"https://img.youtube.com/vi/46AIcgkdlIY/hqdefault.jpg","duration":"15:20","views":19405,"publisherName":"MNS Graphix","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-11-_CoVEWECfb4","title":"Forbidden Romance | ROMANCE, DRAMA | Full Movie in English","category":"Drama","youtubeId":"_CoVEWECfb4","thumbnail":"https://img.youtube.com/vi/_CoVEWECfb4/hqdefault.jpg","duration":"15:20","views":19732,"publisherName":"Boxoffice | ROMANCE | Full Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-12-U9EPCFxoe6Y","title":"THE IRON MASK :: (2026) Jason Statham & Scott Adkins | Full Action Movie | Full HD","category":"Drama","youtubeId":"U9EPCFxoe6Y","thumbnail":"https://img.youtube.com/vi/U9EPCFxoe6Y/hqdefault.jpg","duration":"15:20","views":20059,"publisherName":"ZED Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-13-VXIQZMud03k","title":"অফিসের অন্দর যেন জাদুর কারখানা  | Google Office | ITV Special","category":"Entertainment","youtubeId":"VXIQZMud03k","thumbnail":"https://img.youtube.com/vi/VXIQZMud03k/hqdefault.jpg","duration":"15:20","views":20386,"publisherName":"Independent Television","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-14-UgqeNTwoWHU","title":"MERMAID: Curse of the Sunken Kingdom | Full Movie English 2026 | Dark Fantasy Survival | 4K","category":"Movies","youtubeId":"UgqeNTwoWHU","thumbnail":"https://img.youtube.com/vi/UgqeNTwoWHU/hqdefault.jpg","duration":"15:20","views":20713,"publisherName":"Future Frame Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-15-wIaVPju5L1c","title":"Teri style crazy।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton।Bahadur Media।","category":"Songs","youtubeId":"wIaVPju5L1c","thumbnail":"https://img.youtube.com/vi/wIaVPju5L1c/hqdefault.jpg","duration":"15:20","views":21040,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-16-e6yFz-hVyh0","title":"দিলওয়ালা | Dilwale | Musfiq R Farhan | Naznin Nahar Niha | Miftah Anaan | New Bangla Natok 2026","category":"Drama","youtubeId":"e6yFz-hVyh0","thumbnail":"https://img.youtube.com/vi/e6yFz-hVyh0/hqdefault.jpg","duration":"15:20","views":21367,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-17-7dKb1i3mfXU","title":"Dil_Dhadkan_Boom_artists_babu_bahadur_parvesh_original_official_audio_music_video_v1_bahadur_media","category":"Songs","youtubeId":"7dKb1i3mfXU","thumbnail":"https://img.youtube.com/vi/7dKb1i3mfXU/hqdefault.jpg","duration":"15:20","views":21694,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-18-ABAKSz9TILE","title":"One Last Shot (2026) Full Movie in English | Action Thriller Movie | Scott Adkins | Facts & Explain","category":"Movies","youtubeId":"ABAKSz9TILE","thumbnail":"https://img.youtube.com/vi/ABAKSz9TILE/hqdefault.jpg","duration":"15:20","views":22021,"publisherName":"Wakas Critica","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-19-yUhGU66ixkQ","title":"Tere Name।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"yUhGU66ixkQ","thumbnail":"https://img.youtube.com/vi/yUhGU66ixkQ/hqdefault.jpg","duration":"15:20","views":22348,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-20-3bW4yB8CexE","title":"দুই পৃথিবীর রাজা ০২ | Prank King | Miraz Khan | Ananna Islam | Manvi| Jamrul Razu| Bangla Natok 2026","category":"Drama","youtubeId":"3bW4yB8CexE","thumbnail":"https://img.youtube.com/vi/3bW4yB8CexE/hqdefault.jpg","duration":"15:20","views":22675,"publisherName":"Karu Heem","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-21-szyfuKU6vDs","title":"Santan Jakhan Satru - Bengali Full Movie | Prosenjit Chatterjee | Rituparna Sengupta | Abdur Rajjak","category":"Movies","youtubeId":"szyfuKU6vDs","thumbnail":"https://img.youtube.com/vi/szyfuKU6vDs/hqdefault.jpg","duration":"15:20","views":23002,"publisherName":"Bengali Movies- Angel Digital","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-22-UnBg_Q4O_VY","title":"wow ।original Music video । Indian Ganer। Babu Bahadur, Parvesh । Bahadur Media।","category":"Songs","youtubeId":"UnBg_Q4O_VY","thumbnail":"https://img.youtube.com/vi/UnBg_Q4O_VY/hqdefault.jpg","duration":"15:20","views":23329,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-23-pspQlYOxDuM","title":"Obhiman অভিমান jeet subhosree suparhit movie 4K bengali","category":"Movies","youtubeId":"pspQlYOxDuM","thumbnail":"https://img.youtube.com/vi/pspQlYOxDuM/hqdefault.jpg","duration":"15:20","views":23656,"publisherName":"Rock Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-24-Wn1bgictsgs","title":"Beyond the Trail 2026 | Full Mystery Adventure Action Thriller Movie | Hollywood Hindi Dubbed Movies","category":"Movies","youtubeId":"Wn1bgictsgs","thumbnail":"https://img.youtube.com/vi/Wn1bgictsgs/hqdefault.jpg","duration":"15:20","views":23983,"publisherName":"Duggu Express","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-25-N84TYv6CiEY","title":"Messenger ।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"N84TYv6CiEY","thumbnail":"https://img.youtube.com/vi/N84TYv6CiEY/hqdefault.jpg","duration":"15:20","views":24310,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-26-jupplR974hE","title":"chadni ।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"jupplR974hE","thumbnail":"https://img.youtube.com/vi/jupplR974hE/hqdefault.jpg","duration":"15:20","views":24637,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-27-rnO4F1PuWqo","title":"  Dil ki Dhadkan ।original Music video । Indian Ganer। Babu Bahadur,Parvesh and Liton।Bahadur Media।","category":"Songs","youtubeId":"rnO4F1PuWqo","thumbnail":"https://img.youtube.com/vi/rnO4F1PuWqo/hqdefault.jpg","duration":"15:20","views":24964,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-28-HbcEtCtnzMM","title":"Frank Grillo & Tyrese Gibson Fight Killer Robots In A Civil War |Free Hollywood English Action Movie","category":"Movies","youtubeId":"HbcEtCtnzMM","thumbnail":"https://img.youtube.com/vi/HbcEtCtnzMM/hqdefault.jpg","duration":"15:20","views":25291,"publisherName":"Hollywood Action","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-29-9UCKU_Vo9-Q","title":"FINAL PURSUIT 2 :: (2026) Jason Statham | Full Action Movie | Full HD","category":"Drama","youtubeId":"9UCKU_Vo9-Q","thumbnail":"https://img.youtube.com/vi/9UCKU_Vo9-Q/hqdefault.jpg","duration":"15:20","views":25618,"publisherName":"ZED Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-30-qu09oIaqmVc","title":"Kisti  roz tumse।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media","category":"Songs","youtubeId":"qu09oIaqmVc","thumbnail":"https://img.youtube.com/vi/qu09oIaqmVc/hqdefault.jpg","duration":"15:20","views":25945,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-31-NGPpM5ed4NI","title":"Roop Di Rani।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"NGPpM5ed4NI","thumbnail":"https://img.youtube.com/vi/NGPpM5ed4NI/hqdefault.jpg","duration":"15:20","views":26272,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-32-oM2zRwp68Aw","title":"Valobashar Ovijan | ভালোবাসার অভিযান | Full Drama | Irfan Sajjad | Tanjin Tisha | New Natok 2026","category":"Drama","youtubeId":"oM2zRwp68Aw","thumbnail":"https://img.youtube.com/vi/oM2zRwp68Aw/hqdefault.jpg","duration":"15:20","views":26599,"publisherName":"Jago Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-33--J838qSMuy0","title":"Skin FULL MOVIE | Drama Movies | Sarah Fisher | Girls Night In Movies","category":"Drama","youtubeId":"-J838qSMuy0","thumbnail":"https://img.youtube.com/vi/-J838qSMuy0/hqdefault.jpg","duration":"15:20","views":26926,"publisherName":"Girls Night In ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-34-Ph3FypXP1KA","title":"Beedi।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"Ph3FypXP1KA","thumbnail":"https://img.youtube.com/vi/Ph3FypXP1KA/hqdefault.jpg","duration":"15:20","views":27253,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-35-mSN6BzqWy64","title":"দুনিয়া টাকার গোলাম ৩৫ | Prank King | Shoeb Shanto | Lamha Ansu | Tulona | Sobuj | Bangla Natok 2026","category":"Drama","youtubeId":"mSN6BzqWy64","thumbnail":"https://img.youtube.com/vi/mSN6BzqWy64/hqdefault.jpg","duration":"15:20","views":27580,"publisherName":"Prank King Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-36-Mm7_7-CESNg","title":" Dil Bole Baby।original Music video । Indian Ganer। Babu Bahadur, Parvesh and jeni। Bahadur Media।","category":"Songs","youtubeId":"Mm7_7-CESNg","thumbnail":"https://img.youtube.com/vi/Mm7_7-CESNg/hqdefault.jpg","duration":"15:20","views":27907,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-37-s-Bh2uezzrU","title":"Cocacola।original music video । Indian Ganer।  Bahadur Media !","category":"Songs","youtubeId":"s-Bh2uezzrU","thumbnail":"https://img.youtube.com/vi/s-Bh2uezzrU/hqdefault.jpg","duration":"15:20","views":28234,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-38-zCNEngO4cfY","title":"5 years after divorce, CEO finds ex-wife is now the boss of a Fortune 50 firm!","category":"Drama","youtubeId":"zCNEngO4cfY","thumbnail":"https://img.youtube.com/vi/zCNEngO4cfY/hqdefault.jpg","duration":"15:20","views":28561,"publisherName":"FreshDramaPro","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-39-jDbGrnRErpQ","title":"গ্রামের মেয়ে সুন্দরী | Prank King | Shoeb Shanto | Lamha Ansu | Shanawaz Faisal | Bangla Natok 2026","category":"Drama","youtubeId":"jDbGrnRErpQ","thumbnail":"https://img.youtube.com/vi/jDbGrnRErpQ/hqdefault.jpg","duration":"15:20","views":28888,"publisherName":"JOBAFUL DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-40-XzTSCWDy8Cw","title":"chikiri।original Music video । Indian Ganer। Babu Bahadur, Parvesh and Liton। Bahadur Media।","category":"Songs","youtubeId":"XzTSCWDy8Cw","thumbnail":"https://img.youtube.com/vi/XzTSCWDy8Cw/hqdefault.jpg","duration":"15:20","views":29215,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-41-hEk0siSeNqs","title":"Raste  pe।original Music video । Indian Ganer। Babu Bahadur, Parvesh।By Bahadur Media।","category":"Songs","youtubeId":"hEk0siSeNqs","thumbnail":"https://img.youtube.com/vi/hEk0siSeNqs/hqdefault.jpg","duration":"15:20","views":29542,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-42-knqYbbQ8cOw","title":"😱 Five Years in Prison. One Last Heist. $2 Million at Stake! | Crime Thriller | FULL MOVIE","category":"Movies","youtubeId":"knqYbbQ8cOw","thumbnail":"https://img.youtube.com/vi/knqYbbQ8cOw/hqdefault.jpg","duration":"15:20","views":29869,"publisherName":"Nexus Cinematic","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-43-4_2RevCRCbs","title":"ছোট বোনের বান্ধবী | Prank King | Shoeb Shanto | Lamha Ansu | Jamrul Razu | Bangla New Natok 2024","category":"Drama","youtubeId":"4_2RevCRCbs","thumbnail":"https://img.youtube.com/vi/4_2RevCRCbs/hqdefault.jpg","duration":"15:20","views":30196,"publisherName":"Yeafee Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-44-Ks5BgRPYFbI","title":"Chikiri।full album original Music video । Indian Ganer। Bahadur Media।","category":"Songs","youtubeId":"Ks5BgRPYFbI","thumbnail":"https://img.youtube.com/vi/Ks5BgRPYFbI/hqdefault.jpg","duration":"15:20","views":30523,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-45-L1djPncKIbc","title":"Sweet Family | সুইট ফ্যামিলি (Full Natok) | Niloy Alamgir | JS Heme | Bangla New Natok 2026","category":"Drama","youtubeId":"L1djPncKIbc","thumbnail":"https://img.youtube.com/vi/L1djPncKIbc/hqdefault.jpg","duration":"15:20","views":30850,"publisherName":"SKY DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-46-bVAS5afUTUk","title":"Adventure Movie You’ll Never Forget / Temple of the Sun / Full Action in English","category":"Movies","youtubeId":"bVAS5afUTUk","thumbnail":"https://img.youtube.com/vi/bVAS5afUTUk/hqdefault.jpg","duration":"15:20","views":31177,"publisherName":"Epic Movie Nexus","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-47-yfC0smMv2ms","title":"Dil ke Raste।original Music video । Indian Ganer। Babu Bahadur, Parvesh।By Bahadur Media।","category":"Songs","youtubeId":"yfC0smMv2ms","thumbnail":"https://img.youtube.com/vi/yfC0smMv2ms/hqdefault.jpg","duration":"15:20","views":31504,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-48-3h_xshXbZxg","title":"sirf_tumse_Artist_BabuBahadur_Parvesh_jeni_original_Master_v1_Bahadur_Media","category":"Entertainment","youtubeId":"3h_xshXbZxg","thumbnail":"https://img.youtube.com/vi/3h_xshXbZxg/hqdefault.jpg","duration":"15:20","views":31831,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-49-dHlWn_GC6ko","title":"দুষ্টামির সংসার | Dustamir Shongshar| Rafsun Imtiaj | Nusrat Spriha |Rakib Mirzya |Bangla Natok 2025","category":"Drama","youtubeId":"dHlWn_GC6ko","thumbnail":"https://img.youtube.com/vi/dHlWn_GC6ko/hqdefault.jpg","duration":"15:20","views":32158,"publisherName":"Dream Eye Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-50-RDRoGbQ3npk","title":"New Song 2026 | New Hindi Song | Dil Ki  Hasrat | Ariyan Khan | Rashmika Mandana | New Song ","category":"Songs","youtubeId":"RDRoGbQ3npk","thumbnail":"https://img.youtube.com/vi/RDRoGbQ3npk/hqdefault.jpg","duration":"15:20","views":32485,"publisherName":"Prakash Jojawar","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-51-IIWx7erar6o","title":"Ye Tune kya kiya।original Music video । Indian Ganer। Babu Bahadur, Parvesh।By Bahadur Media।","category":"Songs","youtubeId":"IIWx7erar6o","thumbnail":"https://img.youtube.com/vi/IIWx7erar6o/hqdefault.jpg","duration":"15:20","views":32812,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-52-OCA4nkJs7jE","title":"New Song 2026 | New Hindi Song | Phir Se Mohabbat | Ranbir Kapoor | Alia Bhatt | New Song","category":"Songs","youtubeId":"OCA4nkJs7jE","thumbnail":"https://img.youtube.com/vi/OCA4nkJs7jE/hqdefault.jpg","duration":"15:20","views":33139,"publisherName":"Gaurav Mali","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-53-LB5pGPqTyT4","title":"ভেলকিবাজ বউ | Velkibaj Bou | Rafsun Imtiaj | Saila Sathy | Hasan Mehedi | Bangla New Natok 2025","category":"Drama","youtubeId":"LB5pGPqTyT4","thumbnail":"https://img.youtube.com/vi/LB5pGPqTyT4/hqdefault.jpg","duration":"15:20","views":33466,"publisherName":"Dream Eye Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-54-zAEA3h529ZU","title":"Dhamaal 4: SAREE MV | Sanju Rathod, Tanishk | Ajay Devgn, Ritiesh Deshmukh, Anjali, Arshad, Jaaved","category":"Entertainment","youtubeId":"zAEA3h529ZU","thumbnail":"https://img.youtube.com/vi/zAEA3h529ZU/hqdefault.jpg","duration":"15:20","views":33793,"publisherName":"T-Series","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-55-FuoEzUofvUg","title":"গরিবের বউ কোটিপতি ৪ | Prank King | Shoeb Shanto | Lamha Ansu | S R Sobuj | New Bangla Natok 2026","category":"Drama","youtubeId":"FuoEzUofvUg","thumbnail":"https://img.youtube.com/vi/FuoEzUofvUg/hqdefault.jpg","duration":"15:20","views":34120,"publisherName":"Feel Factory","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-56-ZfX4MnVICfI","title":"Soniye।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"ZfX4MnVICfI","thumbnail":"https://img.youtube.com/vi/ZfX4MnVICfI/hqdefault.jpg","duration":"15:20","views":34447,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-57-RcyW7YQ_5WU","title":"Welcome to the Jungle (2026) Latest Hindi Full Movie | Starring Akshay Kumar, Suniel Shetty, Disha","category":"Movies","youtubeId":"RcyW7YQ_5WU","thumbnail":"https://img.youtube.com/vi/RcyW7YQ_5WU/hqdefault.jpg","duration":"15:20","views":34774,"publisherName":"RG Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-58-ysGkJCJT4bg","title":"Chakri Hobe Kobe ? | চাকরি হবে কবে ? | Rafsun Imtiaj | Tanjil Liya | New Natok 2026","category":"Drama","youtubeId":"ysGkJCJT4bg","thumbnail":"https://img.youtube.com/vi/ysGkJCJT4bg/hqdefault.jpg","duration":"15:20","views":35101,"publisherName":"Khadin Studio","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-59-aR0j8CRK15o","title":"Peddi (2026) Full Hindi Dubbed Movie | Ram Charan & Janhvi Kapoor | New South Movie 2026 | 4K","category":"Movies","youtubeId":"aR0j8CRK15o","thumbnail":"https://img.youtube.com/vi/aR0j8CRK15o/hqdefault.jpg","duration":"15:20","views":35428,"publisherName":"CineMahal Motion Pictures","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-60-K-Hs4e_wIrI","title":"Colony ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"K-Hs4e_wIrI","thumbnail":"https://img.youtube.com/vi/K-Hs4e_wIrI/hqdefault.jpg","duration":"15:20","views":35755,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-61-zbTPicp0y4M","title":"DRINKER SAI - 2026 New Released Blockbuster Love Story Hindi Dubbed Movie | Latest South Movie 2026","category":"Movies","youtubeId":"zbTPicp0y4M","thumbnail":"https://img.youtube.com/vi/zbTPicp0y4M/hqdefault.jpg","duration":"15:20","views":36082,"publisherName":"RDC Movie","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-62-orxa52OKqIM","title":"ভালোবাসার প্রতিশোধ | Prank King | Shafiul Raj | Tayeba Tulona | Jamrul Razu | New Bangla Natok 2026","category":"Drama","youtubeId":"orxa52OKqIM","thumbnail":"https://img.youtube.com/vi/orxa52OKqIM/hqdefault.jpg","duration":"15:20","views":36409,"publisherName":"JOBAFUL DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-63-yBEUG0cMdPI","title":"এমন একটা বউ | Emon Ekta Bou | Jovan | Totini | Jonayed Bukdadi | MR Aryan | Exlusive Bangla Natok","category":"Drama","youtubeId":"yBEUG0cMdPI","thumbnail":"https://img.youtube.com/vi/yBEUG0cMdPI/hqdefault.jpg","duration":"15:20","views":36736,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-64-GLGUKqqu7sQ","title":"Kung Fu Full Action Movie | Ram Charan | Pooja Hegde | Latest South Indian Hindi Action Movie 2026","category":"Movies","youtubeId":"GLGUKqqu7sQ","thumbnail":"https://img.youtube.com/vi/GLGUKqqu7sQ/hqdefault.jpg","duration":"15:20","views":37063,"publisherName":"Movie Zilla - Hindi Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-65-PkaKBnaM6Lw","title":"Ye Dhya  ।Original Neon Nights Mix Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"PkaKBnaM6Lw","thumbnail":"https://img.youtube.com/vi/PkaKBnaM6Lw/hqdefault.jpg","duration":"15:20","views":37390,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-66-89L-EoBizYc","title":"Teri Adda pe ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"89L-EoBizYc","thumbnail":"https://img.youtube.com/vi/89L-EoBizYc/hqdefault.jpg","duration":"15:20","views":37717,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-67-em9MOqwGn-c","title":"Spyder (2026) Mahesh Babu New Released Full Hindi Dubbed Movies | Latest South Movies | Rakul Preet","category":"Movies","youtubeId":"em9MOqwGn-c","thumbnail":"https://img.youtube.com/vi/em9MOqwGn-c/hqdefault.jpg","duration":"15:20","views":38044,"publisherName":"RDC Bollywood Dhamal","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-68-oTZTmvlmqIo","title":"Amma।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"oTZTmvlmqIo","thumbnail":"https://img.youtube.com/vi/oTZTmvlmqIo/hqdefault.jpg","duration":"15:20","views":38371,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-69-5J8Usrl7fgs","title":"বেঈমান মেয়ে | Prank King | Shoeb Shanto | Lamha Ansu | Shakil Hossain | New Bangla Natok 2026","category":"Drama","youtubeId":"5J8Usrl7fgs","thumbnail":"https://img.youtube.com/vi/5J8Usrl7fgs/hqdefault.jpg","duration":"15:20","views":38698,"publisherName":"90 Minutes Film","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-70-BVeNYogC6Hs","title":"Geetha Govindam -\"Vijay Deverakonda\" New Released South Action Blockbuster Superhit Hindi Movie 2026","category":"Movies","youtubeId":"BVeNYogC6Hs","thumbnail":"https://img.youtube.com/vi/BVeNYogC6Hs/hqdefault.jpg","duration":"15:20","views":39025,"publisherName":"Bolly Kick","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-71-qOt68Xdkl4g","title":"গ্রামের লুঙ্গি বউ । Prank king । Shoeb Shanto । Lamha Ansu। Jamrul RaZu ।Bangla New Natok 2025","category":"Drama","youtubeId":"qOt68Xdkl4g","thumbnail":"https://img.youtube.com/vi/qOt68Xdkl4g/hqdefault.jpg","duration":"15:20","views":39352,"publisherName":"Film And More","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-72-X2xpyr-Zg0M","title":"Dhadkan।Original Neon Nights Mix Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"X2xpyr-Zg0M","thumbnail":"https://img.youtube.com/vi/X2xpyr-Zg0M/hqdefault.jpg","duration":"15:20","views":39679,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-73-2vhhyEPfWQk","title":"Relationship | রিলেশনশিপ | Musfiq R. Farhan | Parsa Evana | Sarika Sabrin | New Bangla Natok 2026","category":"Drama","youtubeId":"2vhhyEPfWQk","thumbnail":"https://img.youtube.com/vi/2vhhyEPfWQk/hqdefault.jpg","duration":"15:20","views":40006,"publisherName":"Lumino Picture","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-74-OPhr5WYOkHM","title":"The Paradise Movie Review | Yogi Bolta Hai","category":"Movies","youtubeId":"OPhr5WYOkHM","thumbnail":"https://img.youtube.com/vi/OPhr5WYOkHM/hqdefault.jpg","duration":"15:20","views":40333,"publisherName":"YOGI BOLTA HAI","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-75-1rLfBSeD2RU","title":"টম এন্ড জেরির বিয়ে | Prank King | Tamim Khandakar | Saila Shathy | Rakib Mirzya | Bangla Natok 2023","category":"Drama","youtubeId":"1rLfBSeD2RU","thumbnail":"https://img.youtube.com/vi/1rLfBSeD2RU/hqdefault.jpg","duration":"15:20","views":40660,"publisherName":"Yeafee Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-76--fG7aciTcYI","title":"Quin ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"-fG7aciTcYI","thumbnail":"https://img.youtube.com/vi/-fG7aciTcYI/hqdefault.jpg","duration":"15:20","views":40987,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-77-gs_4zISBg9U","title":"The Paradise Hindi Trailer | Nani | Srikanth Odela | Anirudh Ravichander | Sept 24th 2026","category":"Movies","youtubeId":"gs_4zISBg9U","thumbnail":"https://img.youtube.com/vi/gs_4zISBg9U/hqdefault.jpg","duration":"15:20","views":41314,"publisherName":"Aniket Nikam Creations","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-78-5NlI1AXz8qk","title":"এই ঘর এই সংসার | Prank King | Rafsun Imtiaj | Shoeb Shanto | Afrina Rup | Tulona | Bangla Natok 2026","category":"Drama","youtubeId":"5NlI1AXz8qk","thumbnail":"https://img.youtube.com/vi/5NlI1AXz8qk/hqdefault.jpg","duration":"15:20","views":41641,"publisherName":"Feel Factory","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-79-OxSonjTou8A","title":"sraf Tumse ।Original Neon Nights Mix।Indian Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"OxSonjTou8A","thumbnail":"https://img.youtube.com/vi/OxSonjTou8A/hqdefault.jpg","duration":"15:20","views":41968,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-80-RNkFoGsxmzQ","title":"পরাণ যায় জ্বলিয়া | Prank King | Rafsun Imtiaj | Tayeba Tulona | S R Sobuj | Bangla Natok 2026","category":"Drama","youtubeId":"RNkFoGsxmzQ","thumbnail":"https://img.youtube.com/vi/RNkFoGsxmzQ/hqdefault.jpg","duration":"15:20","views":42295,"publisherName":"Guddi Studio","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-81-lEKGJZ-0bbM","title":"The Paradise Full Movie Hindi Dubbed | Nani & Janhvi Kapoor | Latest South Indian Action Movie 2026","category":"Movies","youtubeId":"lEKGJZ-0bbM","thumbnail":"https://img.youtube.com/vi/lEKGJZ-0bbM/hqdefault.jpg","duration":"15:20","views":42622,"publisherName":"South Global Cinema","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-82-lbja4d-aX8M","title":"বউ অতি রোমান্টিক | Prank King | Tamim Khandakar | Saila Sathy | Shakil | Bangla  New Natok 2024","category":"Drama","youtubeId":"lbja4d-aX8M","thumbnail":"https://img.youtube.com/vi/lbja4d-aX8M/hqdefault.jpg","duration":"15:20","views":42949,"publisherName":"Film And More","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-83-z2nYwvyHQxo","title":"খুঁজেছি তোমাকে | Prank King | Saila Sathy | Shafiul Raj | Hasan Mehedi | Bangla New Natok 2025","category":"Drama","youtubeId":"z2nYwvyHQxo","thumbnail":"https://img.youtube.com/vi/z2nYwvyHQxo/hqdefault.jpg","duration":"15:20","views":43276,"publisherName":"Feel Factory","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-84-K-Rbc2UUG8k","title":"Ruler | South Indian Released Full Hindi Dubbed Action Movies | Allu Arjun, Samantha New Movie 2026","category":"Movies","youtubeId":"K-Rbc2UUG8k","thumbnail":"https://img.youtube.com/vi/K-Rbc2UUG8k/hqdefault.jpg","duration":"15:20","views":43603,"publisherName":"Shyam Studio Originals","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-85-CK9s_hKglDc","title":"Top 10 hit song 2026।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"CK9s_hKglDc","thumbnail":"https://img.youtube.com/vi/CK9s_hKglDc/hqdefault.jpg","duration":"15:20","views":43930,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-86-5o1HuJ-A-vI","title":"Featured Video 5o1HuJ-A-vI","category":"Entertainment","youtubeId":"5o1HuJ-A-vI","thumbnail":"https://img.youtube.com/vi/5o1HuJ-A-vI/hqdefault.jpg","duration":"15:20","views":44257,"publisherName":"Admin Verified","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-87-sdOQ6TnM5Es","title":"THE BOSS CM - New Released South Action Blockbuster Superhit Hindi Movie | Jr. NTR, Pooja Hegde","category":"Movies","youtubeId":"sdOQ6TnM5Es","thumbnail":"https://img.youtube.com/vi/sdOQ6TnM5Es/hqdefault.jpg","duration":"15:20","views":44584,"publisherName":"RDC South Dubbed","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-88-fhROGzv4hvw","title":"Aawaara ।Original Neon Nights Mix। Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"fhROGzv4hvw","thumbnail":"https://img.youtube.com/vi/fhROGzv4hvw/hqdefault.jpg","duration":"15:20","views":44911,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-89-VHfzCh4ZbFM","title":"RAAKA | Full Hindi Movie | Allu Arjun, Deepika Padukone, Sreeleela | South Indian Action Movie 2026","category":"Movies","youtubeId":"VHfzCh4ZbFM","thumbnail":"https://img.youtube.com/vi/VHfzCh4ZbFM/hqdefault.jpg","duration":"15:20","views":45238,"publisherName":"Miniplex Screen","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-90-DctqiN5ZvBU","title":"Ami Shudhu Tomake Chai | আমি শুধু তোমাকে চাই | Partho Sheikh | Nawba | New Natok 2026","category":"Drama","youtubeId":"DctqiN5ZvBU","thumbnail":"https://img.youtube.com/vi/DctqiN5ZvBU/hqdefault.jpg","duration":"15:20","views":45565,"publisherName":"Laser Vision","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-91-3f8NI8JCqcw","title":"Mere Humnava ।Original Neon Nights Mix।Romantic  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"3f8NI8JCqcw","thumbnail":"https://img.youtube.com/vi/3f8NI8JCqcw/hqdefault.jpg","duration":"15:20","views":45892,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-92-0NIKDmyV99Y","title":"BRIGADIER Full Movie Hindi Dubbed | Vijay Deverakonda | Sreeleela | Latest South Indian Action Movie","category":"Movies","youtubeId":"0NIKDmyV99Y","thumbnail":"https://img.youtube.com/vi/0NIKDmyV99Y/hqdefault.jpg","duration":"15:20","views":46219,"publisherName":"Movie Forever","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-93-ahdn5M8ZcwA","title":"সম্রাট দ্যা কিং ০১ | Sakib Siddique | Arohi Mim | Nusrat Spriha | Ador Mirza | Bangla New Natok 2026","category":"Drama","youtubeId":"ahdn5M8ZcwA","thumbnail":"https://img.youtube.com/vi/ahdn5M8ZcwA/hqdefault.jpg","duration":"15:20","views":46546,"publisherName":"CD CHOICE EXPRESS","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-94-S8cxVi-4WAE","title":"Daraz ।Original Neon Nights Mix।Action Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"S8cxVi-4WAE","thumbnail":"https://img.youtube.com/vi/S8cxVi-4WAE/hqdefault.jpg","duration":"15:20","views":46873,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-95-sJvv1liBiQY","title":"Junior 2026 New Release South Action Movie | Genelia D'Souza, Sreeleela, Kireeti Reddy, Brahmanandam","category":"Movies","youtubeId":"sJvv1liBiQY","thumbnail":"https://img.youtube.com/vi/sJvv1liBiQY/hqdefault.jpg","duration":"15:20","views":47200,"publisherName":"RKD Studios","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-96-CvHBN6jyoGo","title":"Heart   ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"CvHBN6jyoGo","thumbnail":"https://img.youtube.com/vi/CvHBN6jyoGo/hqdefault.jpg","duration":"15:20","views":47527,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-97-NCBIv5IU3As","title":"কুংফু বউ | Prank King | Rafsun Imtiaj | Nusrat Spriha | Jamrul Razu | Bangla New Natok 2024","category":"Drama","youtubeId":"NCBIv5IU3As","thumbnail":"https://img.youtube.com/vi/NCBIv5IU3As/hqdefault.jpg","duration":"15:20","views":47854,"publisherName":"HIA DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-98-6-uuc6defCM","title":"মা ও বউয়ের যুদ্ধ | Prank King | Miraz Khan | Ananna Islam | Jamrul Razu | New Bangla Natok 2026","category":"Drama","youtubeId":"6-uuc6defCM","thumbnail":"https://img.youtube.com/vi/6-uuc6defCM/hqdefault.jpg","duration":"15:20","views":48181,"publisherName":"BiggB Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-99-KpUHwT29n20","title":"Revolver Rita | Keerthy Suresh, Radhika, Super Subbarayan | 2026 New Release South Action Movies","category":"Movies","youtubeId":"KpUHwT29n20","thumbnail":"https://img.youtube.com/vi/KpUHwT29n20/hqdefault.jpg","duration":"15:20","views":48508,"publisherName":"RKD Studios","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-100-hPi3T9ZOXDs","title":"Tu MiLe  ।Original Neon Nights Mix।Romantic  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"hPi3T9ZOXDs","thumbnail":"https://img.youtube.com/vi/hPi3T9ZOXDs/hqdefault.jpg","duration":"15:20","views":48835,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-101-yxGrvgpV2Lc","title":"Pushpa 3 || Superstar Allu Arjun  || New Released Full Hindi Dubbed Action Movie 2025 #latestmovies","category":"Movies","youtubeId":"yxGrvgpV2Lc","thumbnail":"https://img.youtube.com/vi/yxGrvgpV2Lc/hqdefault.jpg","duration":"15:20","views":49162,"publisherName":"Golu Digital Media","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-102-5FSb0f9Bv1U","title":"La Jawab ISHQ (Official Video) 💖 Bollywood Dance Anthem | New Hindi Songs | Dance Performance Hit","category":"Songs","youtubeId":"5FSb0f9Bv1U","thumbnail":"https://img.youtube.com/vi/5FSb0f9Bv1U/hqdefault.jpg","duration":"15:20","views":49489,"publisherName":"AI-V-Series","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-103-OE2qNfrwWJQ","title":"রানী যখন চাকরানি । Prank King | Rafsun Imtiaj | Nusrat Spriha | S.R Sobuj | Bangla New Natok 2025","category":"Drama","youtubeId":"OE2qNfrwWJQ","thumbnail":"https://img.youtube.com/vi/OE2qNfrwWJQ/hqdefault.jpg","duration":"15:20","views":49816,"publisherName":"AYNA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-104-U-tejcxDba4","title":"QUICKSAND | Hindi Dubbed Hollywood Survival Thriller Horror Movie | Full Movie","category":"Movies","youtubeId":"U-tejcxDba4","thumbnail":"https://img.youtube.com/vi/U-tejcxDba4/hqdefault.jpg","duration":"15:20","views":50143,"publisherName":"South Original Moviez","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-105-oF3WKhT1VmE","title":"Dil Mein Beat Tera ।Original Neon Nights Mix।Romantic  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"oF3WKhT1VmE","thumbnail":"https://img.youtube.com/vi/oF3WKhT1VmE/hqdefault.jpg","duration":"15:20","views":50470,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-106-v1XuacOIKB4","title":"New Hindi Movie : Game Play  (2026) Full Movie | Ajay Devgn, Arshad Warsi, Riteish Deshmukh","category":"Movies","youtubeId":"v1XuacOIKB4","thumbnail":"https://img.youtube.com/vi/v1XuacOIKB4/hqdefault.jpg","duration":"15:20","views":50797,"publisherName":"Apex Studios","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-107-LLm9J8VZcKk","title":"কালো মেয়ের যৌতুক। Prank King | Rafsun Imtiaj | Saila Sathy | Jamrul Razu |  Bangla New Natok 2026","category":"Drama","youtubeId":"LLm9J8VZcKk","thumbnail":"https://img.youtube.com/vi/LLm9J8VZcKk/hqdefault.jpg","duration":"15:20","views":51124,"publisherName":"Rong Dhong","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-108-vgzrMosAlhY","title":"স্কুল জীবন ০১ | Sumaiya Robayed | Beli | Afrin | Oyshi | Soykat Sadik | New Bangla Natok 2026","category":"Drama","youtubeId":"vgzrMosAlhY","thumbnail":"https://img.youtube.com/vi/vgzrMosAlhY/hqdefault.jpg","duration":"15:20","views":51451,"publisherName":"MDF Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-109-yCnpBoz0ncQ","title":"Fauji (2025) Full Movie Hindi Dubbed | Latest South Indian Action Movie","category":"Movies","youtubeId":"yCnpBoz0ncQ","thumbnail":"https://img.youtube.com/vi/yCnpBoz0ncQ/hqdefault.jpg","duration":"15:20","views":51778,"publisherName":"Cinema Production","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-110-9QDD4PU_cp8","title":"jawaani ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"9QDD4PU_cp8","thumbnail":"https://img.youtube.com/vi/9QDD4PU_cp8/hqdefault.jpg","duration":"15:20","views":52105,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-111-TMTUg2bXA9w","title":"তোমার কাছে বন্দি ❤️ | Part 3 | Ruhi & Jayed Romantic Love Story | Bengali Romantic Drama","category":"Drama","youtubeId":"TMTUg2bXA9w","thumbnail":"https://img.youtube.com/vi/TMTUg2bXA9w/hqdefault.jpg","duration":"15:20","views":52432,"publisherName":"Rafiya Rizwana Ritu","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-112-hACsZuCE-G8","title":"Superhit Hindi Dubbed Blockbuster Action Movie Full HD 1080p | Mahesh Babu, Gopichand, Rakshita","category":"Movies","youtubeId":"hACsZuCE-G8","thumbnail":"https://img.youtube.com/vi/hACsZuCE-G8/hqdefault.jpg","duration":"15:20","views":52759,"publisherName":"Superhit Movies Junction","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-113-97fu8W_RuhI","title":"Ab soch Liya ।Original Neon Nights Mix।romantic  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"97fu8W_RuhI","thumbnail":"https://img.youtube.com/vi/97fu8W_RuhI/hqdefault.jpg","duration":"15:20","views":53086,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-114-FDXZyvslAYY","title":"দেমাগী বউকে শিক্ষা | Prank King | Rafsun Imtiaj | Nusrat Spriha | Jamrul Razu | Bangla  Natok 2024","category":"Drama","youtubeId":"FDXZyvslAYY","thumbnail":"https://img.youtube.com/vi/FDXZyvslAYY/hqdefault.jpg","duration":"15:20","views":53413,"publisherName":"VTv Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-115-5GIokdPxOtI","title":"Sundari | South Hindi Dubbed Action Romantic Movie Full Love Story | Poorna, ArjunAmbati | New Movie","category":"Movies","youtubeId":"5GIokdPxOtI","thumbnail":"https://img.youtube.com/vi/5GIokdPxOtI/hqdefault.jpg","duration":"15:20","views":53740,"publisherName":"MIX Movies Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-116-ZSyUKcwfSLQ","title":"Nagin Nagin ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"ZSyUKcwfSLQ","thumbnail":"https://img.youtube.com/vi/ZSyUKcwfSLQ/hqdefault.jpg","duration":"15:20","views":54067,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-117-GwfkCe9IJPs","title":"Bang Bang 2 (2026) Hindi Dubbed Full Movie | Hrithik Roshan | Kiara Advani | Action Thriller HD","category":"Movies","youtubeId":"GwfkCe9IJPs","thumbnail":"https://img.youtube.com/vi/GwfkCe9IJPs/hqdefault.jpg","duration":"15:20","views":54394,"publisherName":"NovaHit Cinema","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-118-GTbs3vQbWd0","title":"বিয়ের জন্য পরীক্ষা | Prank King | Rafsan Imtiaz | Saila Sathy | S R Sobuj | Bangla New Natok 2024","category":"Drama","youtubeId":"GTbs3vQbWd0","thumbnail":"https://img.youtube.com/vi/GTbs3vQbWd0/hqdefault.jpg","duration":"15:20","views":54721,"publisherName":"Peacock Multimedia","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-119-q9vi5gD2KOI","title":"Superstar Ravi Teja ''रेलवे अधिकारी'' | New Released Full South Hindi Dubbed Movie | Sreeleela |HD","category":"Movies","youtubeId":"q9vi5gD2KOI","thumbnail":"https://img.youtube.com/vi/q9vi5gD2KOI/hqdefault.jpg","duration":"15:20","views":55048,"publisherName":"Admd Action Cinescreen","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-120-XYc7a1dWQDU","title":"Nacho nacho Hellallallo।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"XYc7a1dWQDU","thumbnail":"https://img.youtube.com/vi/XYc7a1dWQDU/hqdefault.jpg","duration":"15:20","views":55375,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-121-n7Nim4GuAMg","title":"মন ভাঙা প্রেম  | Prank King | Rafsun Imtiaj | Tayeba Tulona  | S.R Sobuj  | New Bangla Natok 2025","category":"Drama","youtubeId":"n7Nim4GuAMg","thumbnail":"https://img.youtube.com/vi/n7Nim4GuAMg/hqdefault.jpg","duration":"15:20","views":55702,"publisherName":"AYNA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-122-iHCOPyyq8bM","title":" New Song 2026 | Dil Ka Dard | Rock Star Yash | Raashii Khanna | New Hindi Song | Romantic Song 2026","category":"Songs","youtubeId":"iHCOPyyq8bM","thumbnail":"https://img.youtube.com/vi/iHCOPyyq8bM/hqdefault.jpg","duration":"15:20","views":56029,"publisherName":"Prakash Jojawar","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-123-CBNQnIXUrfg","title":"অপমান | OPOMAN | Full Drama| Miraz Khan | Sumaiya Arpa | 3M Drama | New Bangla Natok 2026","category":"Drama","youtubeId":"CBNQnIXUrfg","thumbnail":"https://img.youtube.com/vi/CBNQnIXUrfg/hqdefault.jpg","duration":"15:20","views":56356,"publisherName":"3M DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-124-HUjPNm4Z8sw","title":"Dhime Dhime  ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"HUjPNm4Z8sw","thumbnail":"https://img.youtube.com/vi/HUjPNm4Z8sw/hqdefault.jpg","duration":"15:20","views":56683,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-125-_PlDXItGKa0","title":"Salman Khan की जबरदस्त एक्शन ब्लॉकबस्टर फुल मूवी | Full Action Movie | Rashmika Mandanna Hindi Movie","category":"Movies","youtubeId":"_PlDXItGKa0","thumbnail":"https://img.youtube.com/vi/_PlDXItGKa0/hqdefault.jpg","duration":"15:20","views":57010,"publisherName":"Ahaan Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-126-P-T8m2FNKdE","title":"Nacho jorse।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"P-T8m2FNKdE","thumbnail":"https://img.youtube.com/vi/P-T8m2FNKdE/hqdefault.jpg","duration":"15:20","views":57337,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-127-479Ba1Iwuuo","title":"Shaheb 9 (সাহেব ৯) | Shagor Mirza | Riya Chowdhury | Drama Series | New Bangla Drama 2026","category":"Drama","youtubeId":"479Ba1Iwuuo","thumbnail":"https://img.youtube.com/vi/479Ba1Iwuuo/hqdefault.jpg","duration":"15:20","views":57664,"publisherName":"Suranjoli","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-128-stxFU3_RagU","title":"Full Hindi Dubbed Action Thriler Movie | Allu Arjun, Anushka Shetty | Virus | New Action Movie 2026","category":"Movies","youtubeId":"stxFU3_RagU","thumbnail":"https://img.youtube.com/vi/stxFU3_RagU/hqdefault.jpg","duration":"15:20","views":57991,"publisherName":"Movie Art Studios","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-129-m9vYVkfB5PM","title":"Baaghi  ।Original Neon Nights Mix।Action  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"m9vYVkfB5PM","thumbnail":"https://img.youtube.com/vi/m9vYVkfB5PM/hqdefault.jpg","duration":"15:20","views":58318,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-130-LWnvgqVZpa4","title":"Robinhood (2025) New Released South Hindi Dubbed Action Comedy Movie | Nithiin, Sreeleela","category":"Movies","youtubeId":"LWnvgqVZpa4","thumbnail":"https://img.youtube.com/vi/LWnvgqVZpa4/hqdefault.jpg","duration":"15:20","views":58645,"publisherName":"RKD Studios","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-131-ebdkN23VxTM","title":"তিন বাচ্চার মা | Prank King | Rafsun Imtiaj | Nusrat Spriha | Hasan Mehedi | Bangla New Natok 2025","category":"Drama","youtubeId":"ebdkN23VxTM","thumbnail":"https://img.youtube.com/vi/ebdkN23VxTM/hqdefault.jpg","duration":"15:20","views":58972,"publisherName":"Aarabi Films","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-132-JR7XfqUo2HU","title":"Kgf Master   ।Original Neon Nights Mix।action  Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"JR7XfqUo2HU","thumbnail":"https://img.youtube.com/vi/JR7XfqUo2HU/hqdefault.jpg","duration":"15:20","views":59299,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-133-Bxfqol0wdjM","title":"IN CAR - \"Ritika Singh\" 2026 New Released Bollywood Hindi Dubbed Action Movie | Latest Full Movie","category":"Movies","youtubeId":"Bxfqol0wdjM","thumbnail":"https://img.youtube.com/vi/Bxfqol0wdjM/hqdefault.jpg","duration":"15:20","views":59626,"publisherName":"RDC Movie Club","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-134-jo0ckiap5Cc","title":"Kala chasma   ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"jo0ckiap5Cc","thumbnail":"https://img.youtube.com/vi/jo0ckiap5Cc/hqdefault.jpg","duration":"15:20","views":59953,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-135-ZTQDPUgqSek","title":"Legend of Chef 2 (2025) | Hindi Dubbed Full Movie | Action Drama Blockbuster","category":"Drama","youtubeId":"ZTQDPUgqSek","thumbnail":"https://img.youtube.com/vi/ZTQDPUgqSek/hqdefault.jpg","duration":"15:20","views":60280,"publisherName":"IOF - Hindi","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-136-u3L5l092GHo","title":"জুনিয়র জামাই | Junior Jamai | Full Natok | Shoeb Shanto | Mim Chowdhury | Bangla New Natok 2026","category":"Drama","youtubeId":"u3L5l092GHo","thumbnail":"https://img.youtube.com/vi/u3L5l092GHo/hqdefault.jpg","duration":"15:20","views":60607,"publisherName":"Choice View Media","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-137-Oyh_OpWutW0","title":"Jr. NTR (Jai Shri) New Release Hindi Dubbed Full Action Movies | Sameera, Sonu Sood | New South Film","category":"Movies","youtubeId":"Oyh_OpWutW0","thumbnail":"https://img.youtube.com/vi/Oyh_OpWutW0/hqdefault.jpg","duration":"15:20","views":60934,"publisherName":"Swami Films CONTENT","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-138-uGTuWNLHcYA","title":"Mow ! Full album ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"uGTuWNLHcYA","thumbnail":"https://img.youtube.com/vi/uGTuWNLHcYA/hqdefault.jpg","duration":"15:20","views":61261,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-139-xttCLoCt2-Q","title":"THE OWL WOMAN : Angelina Jolie | New Action Movie Concept AI 2025 | Full Movie 4K #actionmovies","category":"Drama","youtubeId":"xttCLoCt2-Q","thumbnail":"https://img.youtube.com/vi/xttCLoCt2-Q/hqdefault.jpg","duration":"15:20","views":61588,"publisherName":"Joy Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-140-YOsvB9SW5uM","title":"শহরের মাইয়া গ্রামে | Prank King | Rafsun Imtiaj | Tayeba Tulona | Jamrul Razu |New Bangla Natok 2026","category":"Drama","youtubeId":"YOsvB9SW5uM","thumbnail":"https://img.youtube.com/vi/YOsvB9SW5uM/hqdefault.jpg","duration":"15:20","views":61915,"publisherName":"BiggB Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-141-ul3UPPoI0S8","title":"Hello।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"ul3UPPoI0S8","thumbnail":"https://img.youtube.com/vi/ul3UPPoI0S8/hqdefault.jpg","duration":"15:20","views":62242,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-142-jzJInLd769M","title":"Prathinidhi 2 Hindi Political Thriller Full Movie | Nara Rohith, Siri Leela | 2025 New South Movies","category":"Movies","youtubeId":"jzJInLd769M","thumbnail":"https://img.youtube.com/vi/jzJInLd769M/hqdefault.jpg","duration":"15:20","views":62569,"publisherName":"Sri Balaji Hindi Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-143-rfiD8sp6o5w","title":"Koti Takar Warish | কোটি টাকার ওয়ারিশ | EP 02 | Eagle Team | Even | Zara | New Web Series 2026","category":"Entertainment","youtubeId":"rfiD8sp6o5w","thumbnail":"https://img.youtube.com/vi/rfiD8sp6o5w/hqdefault.jpg","duration":"15:20","views":62896,"publisherName":"Eagle Web Series","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-144-vaqWr4T1iks","title":"FORCE I John Abraham and Jenelia IBlockbuster Hindi Bollywood Full HD Action Dhamaka Movie I","category":"Movies","youtubeId":"vaqWr4T1iks","thumbnail":"https://img.youtube.com/vi/vaqWr4T1iks/hqdefault.jpg","duration":"15:20","views":63223,"publisherName":"Big Screen Cinema","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-145-xhSq3f5C888","title":"লাল টুকটুকে বউ | Prank King | Rafsan Imtiaj | Saila Sathy | Jamrul Razu | Bangla Natok","category":"Drama","youtubeId":"xhSq3f5C888","thumbnail":"https://img.youtube.com/vi/xhSq3f5C888/hqdefault.jpg","duration":"15:20","views":63550,"publisherName":"Sultan Multimedia","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-146-FbfShL5uWco","title":"Hello Baby  ।Original Neon Nights Mix।Dence Hindi | Official Music Video | Bahadur Media","category":"Songs","youtubeId":"FbfShL5uWco","thumbnail":"https://img.youtube.com/vi/FbfShL5uWco/hqdefault.jpg","duration":"15:20","views":63877,"publisherName":"BAHADUR MEDIA ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-147-mTjMbYNPVPw","title":"BRB (HD) | Kichcha Sudeepa, Sreeleela | New Released Blockbuster Hindi Dubbed Movie 2026","category":"Movies","youtubeId":"mTjMbYNPVPw","thumbnail":"https://img.youtube.com/vi/mTjMbYNPVPw/hqdefault.jpg","duration":"15:20","views":64204,"publisherName":"South Film Entertainment","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-148-FO4lXNdsYc0","title":"Ranabaali | South Indian Released Full Hindi Dubbed Action Movies | Ramcharan New Movie 2026","category":"Movies","youtubeId":"FO4lXNdsYc0","thumbnail":"https://img.youtube.com/vi/FO4lXNdsYc0/hqdefault.jpg","duration":"15:20","views":64531,"publisherName":"Shyam Studio Originals","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-149-G-xGpR4_0QQ","title":"XYLAR (2025) | Hindi Dubbed | Sci-Fi Action | Epic Alien Movie","category":"Movies","youtubeId":"G-xGpR4_0QQ","thumbnail":"https://img.youtube.com/vi/G-xGpR4_0QQ/hqdefault.jpg","duration":"15:20","views":64858,"publisherName":"IOF - Hindi","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-150--meu7e3GQTM","title":"nandamuri balkrishna and bobby deol new movie 2025 in hindi","category":"Movies","youtubeId":"-meu7e3GQTM","thumbnail":"https://img.youtube.com/vi/-meu7e3GQTM/hqdefault.jpg","duration":"15:20","views":65185,"publisherName":"Action  fun","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-151-DlTCRxM1w3s","title":"Salman Khan के सबसे खतरनाक मूवी | Rashmika Mandanna Bollywood Blockbuster Full Hindi Movie","category":"Movies","youtubeId":"DlTCRxM1w3s","thumbnail":"https://img.youtube.com/vi/DlTCRxM1w3s/hqdefault.jpg","duration":"15:20","views":65512,"publisherName":"Scene Bazzars","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-152-6Ft9JDtXHgs","title":"Rudra Tandav | South Indian Hindi Dubbed Full Movie | Raghava Lawrence, Priya Bhavani S, Nassar","category":"Movies","youtubeId":"6Ft9JDtXHgs","thumbnail":"https://img.youtube.com/vi/6Ft9JDtXHgs/hqdefault.jpg","duration":"15:20","views":65839,"publisherName":"Bumper Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-153-7d8X9ekJR7U","title":"KUNG FU Rebound 2 (2025) | Full Hindi Dubbed Action Movie | Epic Martial Arts Showdown","category":"Movies","youtubeId":"7d8X9ekJR7U","thumbnail":"https://img.youtube.com/vi/7d8X9ekJR7U/hqdefault.jpg","duration":"15:20","views":66166,"publisherName":"IOF - Hindi","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-154-qal3AliaS7M","title":"Noyon Tara | নয়ন তারা | Shamim Hasan Sarkar | Samanta Parveg | Full Bangla Natok 2026 | DOEL Tales","category":"Drama","youtubeId":"qal3AliaS7M","thumbnail":"https://img.youtube.com/vi/qal3AliaS7M/hqdefault.jpg","duration":"15:20","views":66493,"publisherName":"Doel","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-155-w5q4JjcLKWc","title":"Nonstop Party Mashup 2025 🔥 Best Hindi DJ Remix | Latest Dance Hits & Bollywood Songs","category":"Songs","youtubeId":"w5q4JjcLKWc","thumbnail":"https://img.youtube.com/vi/w5q4JjcLKWc/hqdefault.jpg","duration":"15:20","views":66820,"publisherName":"DJ Rhythm Vibes","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-156-U8nxFwP8oLI","title":"ক্ষুধার জ্বালা । Khudhar Jala । Full Natok। Urmi । New Bangla Natok 2026 । Ample Family Drama","category":"Drama","youtubeId":"U8nxFwP8oLI","thumbnail":"https://img.youtube.com/vi/U8nxFwP8oLI/hqdefault.jpg","duration":"15:20","views":67147,"publisherName":"Ample Family Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-157-G5P83XVLqRw","title":"GAN JIANG \" 2025 New Superhit Chines Adventure Movie | Hindi Dubbed | Blockbuster Hollywood HD Movie","category":"Movies","youtubeId":"G5P83XVLqRw","thumbnail":"https://img.youtube.com/vi/G5P83XVLqRw/hqdefault.jpg","duration":"15:20","views":67474,"publisherName":"Hollywood Adventure Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-158-psx2jNugL-M","title":"Zebra (2025) New Released Hindi Dubbed Action Movie | Dhananjay, Satyadev, Priya Bhavani Shankar","category":"Movies","youtubeId":"psx2jNugL-M","thumbnail":"https://img.youtube.com/vi/psx2jNugL-M/hqdefault.jpg","duration":"15:20","views":67801,"publisherName":"RKD Studios","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-159-FCHCdKB0H7k","title":"Featured Video FCHCdKB0H7k","category":"Entertainment","youtubeId":"FCHCdKB0H7k","thumbnail":"https://img.youtube.com/vi/FCHCdKB0H7k/hqdefault.jpg","duration":"15:20","views":68128,"publisherName":"Admin Verified","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-160-kVHkC0r-hf0","title":"Maharaja Ravi - Hindi Dubbed Full Movie | Ravi Teja, Jayaram, Sree Leela | Action Movie","category":"Movies","youtubeId":"kVHkC0r-hf0","thumbnail":"https://img.youtube.com/vi/kVHkC0r-hf0/hqdefault.jpg","duration":"15:20","views":68455,"publisherName":"Primetime Action Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-161-7mgxvf3KEls","title":"Bou Noy Bipod | বউ নয় বিপদ | Niloy Alamgir | JS Heme | New Natok 2026","category":"Drama","youtubeId":"7mgxvf3KEls","thumbnail":"https://img.youtube.com/vi/7mgxvf3KEls/hqdefault.jpg","duration":"15:20","views":68782,"publisherName":"VisualScene ENTERTAINMENT","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-162-w2MjBez-hDU","title":"Maha Rakshak - New Released South Action Blockbuster Superhit Hindi Movie | Vishal, Shraddha, Regina","category":"Movies","youtubeId":"w2MjBez-hDU","thumbnail":"https://img.youtube.com/vi/w2MjBez-hDU/hqdefault.jpg","duration":"15:20","views":69109,"publisherName":"RDC Movie","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-163-wiw0ytdjJVw","title":"Apocalypto-2 | Hindi Dubbed Full Movie | Adventure Movie | IOF-Hindi","category":"Movies","youtubeId":"wiw0ytdjJVw","thumbnail":"https://img.youtube.com/vi/wiw0ytdjJVw/hqdefault.jpg","duration":"15:20","views":69436,"publisherName":"IOF - Hindi","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-164-mPJQpgGgeHA","title":"Bangla New Romantic Natok 2026 | Tobuo Tumi | তবুও তুমি | Farhan Ahmed Jovan | Tasnuva Tisha | WSE","category":"Drama","youtubeId":"mPJQpgGgeHA","thumbnail":"https://img.youtube.com/vi/mPJQpgGgeHA/hqdefault.jpg","duration":"15:20","views":69763,"publisherName":"Widescreen Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-165-I3QtlRVszCg","title":"DIYA (2026) New Released Full Hindi Dubbed Horror Thriller Movie | SAI PALLAVI, NAGA SHOURYA","category":"Movies","youtubeId":"I3QtlRVszCg","thumbnail":"https://img.youtube.com/vi/I3QtlRVszCg/hqdefault.jpg","duration":"15:20","views":70090,"publisherName":"RDC Movie","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-166-vbBnxLRh4V8","title":"Ghamasaan (2026) Latest Hindi Full Movie | Starring Arshad Warsi, Pratik Gandhi, Rajpal Yadav","category":"Movies","youtubeId":"vbBnxLRh4V8","thumbnail":"https://img.youtube.com/vi/vbBnxLRh4V8/hqdefault.jpg","duration":"15:20","views":70417,"publisherName":"RG Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-167-qrAK1-BwpI8","title":"পোড়া কপাল | Mosharraf Karim, Jui | Full Drama | Mohin Khan | New Natok 2026 | Global TV Online","category":"Drama","youtubeId":"qrAK1-BwpI8","thumbnail":"https://img.youtube.com/vi/qrAK1-BwpI8/hqdefault.jpg","duration":"15:20","views":70744,"publisherName":"Global TV Online","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-168-8Vkx70ZaBBQ","title":"Swathimutyam Hindi Dubbed Movie 2026 Full Movie | Ganesh Bellamkonda, Varsha Bollamma | South Movie","category":"Movies","youtubeId":"8Vkx70ZaBBQ","thumbnail":"https://img.youtube.com/vi/8Vkx70ZaBBQ/hqdefault.jpg","duration":"15:20","views":71071,"publisherName":"Aditya Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-169-Ruh82lpcq8Y","title":"আদরের চাঁদ | Adorer Chad | Romantic Drama | Khairul Basar | Tanjin Tisha | Bangla New Natok","category":"Drama","youtubeId":"Ruh82lpcq8Y","thumbnail":"https://img.youtube.com/vi/Ruh82lpcq8Y/hqdefault.jpg","duration":"15:20","views":71398,"publisherName":"Bongo","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-170-QwcG9HB3C8c","title":"Padmaavat Full Movie 2018 | Deepika Padukone, Ranveer Singh, Shahid Kapoor | Superhit Movie","category":"Movies","youtubeId":"QwcG9HB3C8c","thumbnail":"https://img.youtube.com/vi/QwcG9HB3C8c/hqdefault.jpg","duration":"15:20","views":71725,"publisherName":"Pital Picture","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-171-GRwkUW7GXyM","title":"Antim Movie | Salman Khan | Aayush Sharma | Mahima Makwana | New Hindi Movies 2026 | Action Movies","category":"Movies","youtubeId":"GRwkUW7GXyM","thumbnail":"https://img.youtube.com/vi/GRwkUW7GXyM/hqdefault.jpg","duration":"15:20","views":72052,"publisherName":"Bolly Kick","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-172-yIWsJHp9Z5M","title":"Ovodro Bou | অভদ্র বউ (Full Natok) Eagle Team | Farhan Even | Mariya Farzana Zara | New Natok 2026","category":"Drama","youtubeId":"yIWsJHp9Z5M","thumbnail":"https://img.youtube.com/vi/yIWsJHp9Z5M/hqdefault.jpg","duration":"15:20","views":72379,"publisherName":"Eagle Islamic Natok","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-173-pi1H-kKyyag","title":"HITMANS | Jason Statham, Dwayne Johnson, Hu Chen | Hindi Dubbed Hollywood Action Movie","category":"Movies","youtubeId":"pi1H-kKyyag","thumbnail":"https://img.youtube.com/vi/pi1H-kKyyag/hqdefault.jpg","duration":"15:20","views":72706,"publisherName":"VibeTube","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-174-vn2ABgUqzfI","title":"AGNIPUTRA- \"Rashmika Mandanna\" New Released South Hindi Dubbed Romantic Movie | Latest South Movie","category":"Movies","youtubeId":"vn2ABgUqzfI","thumbnail":"https://img.youtube.com/vi/vn2ABgUqzfI/hqdefault.jpg","duration":"15:20","views":73033,"publisherName":"RDC Movie","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-175-D5k29gPlSlA","title":"Shikkhito Chasha | শিক্ষিত চাষা (Full Natok) Eagle Team | Sarwar Kiron | Praosy | Bangla Natok 2026","category":"Drama","youtubeId":"D5k29gPlSlA","thumbnail":"https://img.youtube.com/vi/D5k29gPlSlA/hqdefault.jpg","duration":"15:20","views":73360,"publisherName":"Eagle Bangla Natok","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-176-WJxcSRPSOKs","title":"मुकाबला Hindi Full HD Movie | Sanjay Dutt | Malaika Arora | Arjun Rampal | New Bollywood Crime Drama","category":"Drama","youtubeId":"WJxcSRPSOKs","thumbnail":"https://img.youtube.com/vi/WJxcSRPSOKs/hqdefault.jpg","duration":"15:20","views":73687,"publisherName":"Apex Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-177-D2U7tjcf2EM","title":"COMMANDO (2026) Full Movie | New Release South Hindi Dubbed Movie| Blockbuster Action Thriller Movie","category":"Movies","youtubeId":"D2U7tjcf2EM","thumbnail":"https://img.youtube.com/vi/D2U7tjcf2EM/hqdefault.jpg","duration":"15:20","views":74014,"publisherName":"South Global Cinema","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-178-cm1wammXLq0","title":"দাওয়াত | Dawat | Niloy Alamgir-Jannatul Sumaiya Heme | New Bangla Romantic Natok | New Drama 2026 GD","category":"Drama","youtubeId":"cm1wammXLq0","thumbnail":"https://img.youtube.com/vi/cm1wammXLq0/hqdefault.jpg","duration":"15:20","views":74341,"publisherName":"Ganer Dali Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-179-unbHzHNmNDI","title":"Featured Video unbHzHNmNDI","category":"Entertainment","youtubeId":"unbHzHNmNDI","thumbnail":"https://img.youtube.com/vi/unbHzHNmNDI/hqdefault.jpg","duration":"15:20","views":74668,"publisherName":"Admin Verified","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-180-rLe6wgUvNSc","title":"BAAP RE BAAP\" (HD) Superhit New Bollywood Hindi Comedy Full Movie | Anil Kapoor, Chunky Pandey","category":"Movies","youtubeId":"rLe6wgUvNSc","thumbnail":"https://img.youtube.com/vi/rLe6wgUvNSc/hqdefault.jpg","duration":"15:20","views":74995,"publisherName":"RDC Bollywood Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-181-IilCN5SPYyQ","title":"বড়লোক কাজের মেয়ে | Rina Khan | Shuvo Aroshi | Soykat Sadik | New Bangla Natok 2026 | Rina Khan Media","category":"Drama","youtubeId":"IilCN5SPYyQ","thumbnail":"https://img.youtube.com/vi/IilCN5SPYyQ/hqdefault.jpg","duration":"15:20","views":75322,"publisherName":"Rina Khan Media ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-182-7sMysIK2FoI","title":"Full HD Movie Tanhayi Emraan Hashmi & Tamannaah Bhatia Romantic Thriller Movie New Hindi Movie 2026","category":"Movies","youtubeId":"7sMysIK2FoI","thumbnail":"https://img.youtube.com/vi/7sMysIK2FoI/hqdefault.jpg","duration":"15:20","views":75649,"publisherName":"Apex Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-183-Rta_M2zkpWk","title":"MYSAA Teaser (Hindi) | Rashmika | Rawindra Pulle | Jakes Bejoy | UnFormula Films","category":"Movies","youtubeId":"Rta_M2zkpWk","thumbnail":"https://img.youtube.com/vi/Rta_M2zkpWk/hqdefault.jpg","duration":"15:20","views":75976,"publisherName":"T-Series","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-184-mQByb6SFZAA","title":"বাংলা দুঃখের নাটক মায়ের ঋন । Maayer Rin ।Saymon | Papri | Bangla New Natok 2026 | বাংলা নাটক ২০২৬","category":"Drama","youtubeId":"mQByb6SFZAA","thumbnail":"https://img.youtube.com/vi/mQByb6SFZAA/hqdefault.jpg","duration":"15:20","views":76303,"publisherName":"RMT","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-185-88kR6dLSHIk","title":"New Song 2026 | New Hindi Song | Marham Ban Jaana | Shahrukh Khan | Rashmika Mandanna | New Song","category":"Songs","youtubeId":"88kR6dLSHIk","thumbnail":"https://img.youtube.com/vi/88kR6dLSHIk/hqdefault.jpg","duration":"15:20","views":76630,"publisherName":"Gaurav Mali","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-186-2gmlrD1shAA","title":"Suspense Thriller Movies - Raat Baaki Hai Full Hindi Movie (4K) Paoli Dam, Anup Soni & Rahul Dev","category":"Movies","youtubeId":"2gmlrD1shAA","thumbnail":"https://img.youtube.com/vi/2gmlrD1shAA/hqdefault.jpg","duration":"15:20","views":76957,"publisherName":"Ultra Movie Parlour","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-187-mGlYo3jA4mk","title":"Bangla New Natok 2026 | Unsepected Love Story | আনএক্সপেক্টেড লাভ ষ্টোরি | Ziaul Faruq Apurba | Sabi","category":"Drama","youtubeId":"mGlYo3jA4mk","thumbnail":"https://img.youtube.com/vi/mGlYo3jA4mk/hqdefault.jpg","duration":"15:20","views":77284,"publisherName":"Widescreen Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-188-nXkK00NvZLo","title":"New Song 2026 | New Hindi Song | Nazar Na Mila | Emraan Hashmi | Janhvi Kapoor | New Song","category":"Songs","youtubeId":"nXkK00NvZLo","thumbnail":"https://img.youtube.com/vi/nXkK00NvZLo/hqdefault.jpg","duration":"15:20","views":77611,"publisherName":"Gaurav Mali","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-189-nwxUkAMgCwY","title":"Dacoit Full Movie Hindi Dubbed | Adivi Sesh & Mrunal Thakur | New Hindi Movie 2026","category":"Movies","youtubeId":"nwxUkAMgCwY","thumbnail":"https://img.youtube.com/vi/nwxUkAMgCwY/hqdefault.jpg","duration":"15:20","views":77938,"publisherName":"Movie Manch","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-190-Y7RARYP-MJE","title":"Goriber Pora Kopal | গরীবের পোড়া কপাল |Full Natok | Tanmoy Sohel | Mim Chowdhury | Bangla Natok 2026","category":"Drama","youtubeId":"Y7RARYP-MJE","thumbnail":"https://img.youtube.com/vi/Y7RARYP-MJE/hqdefault.jpg","duration":"15:20","views":78265,"publisherName":"HIA DRAMA","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-191-w7ZaGhUzXko","title":"Seven Paths To Ruin | New Action Movie 2026 | Hindi Dubbed Full Movie | Chinese Full HD Fantasy Film","category":"Movies","youtubeId":"w7ZaGhUzXko","thumbnail":"https://img.youtube.com/vi/w7ZaGhUzXko/hqdefault.jpg","duration":"15:20","views":78592,"publisherName":"Duggu Express","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-192-8BPpOwk4jPg","title":"New South Indian Full Movie 2026 Hindi Dubbed | Allu Arjun & Sai Pallavi #action #movie","category":"Movies","youtubeId":"8BPpOwk4jPg","thumbnail":"https://img.youtube.com/vi/8BPpOwk4jPg/hqdefault.jpg","duration":"15:20","views":78919,"publisherName":"South Screen Studio","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-193-LSj-mdlKIlk","title":"রাজা বাবু  | Raja Babu | Bangla Natok 2026 | Riyaj & Tuhina | Moner Moto TV Video","category":"Drama","youtubeId":"LSj-mdlKIlk","thumbnail":"https://img.youtube.com/vi/LSj-mdlKIlk/hqdefault.jpg","duration":"15:20","views":79246,"publisherName":"Moner Moto Tv ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-194-DJWQtpNyhwA","title":"Sanam Teri Kasam 2 Full Movie Hindi | Harshavardhan Rane | Mawra Hocane | New Latest Updates","category":"Movies","youtubeId":"DJWQtpNyhwA","thumbnail":"https://img.youtube.com/vi/DJWQtpNyhwA/hqdefault.jpg","duration":"15:20","views":79573,"publisherName":"Movie Ki Factory","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-195-2vB56hQ2A2w","title":"চাকর যখন মালিক ১০ | Drama Series | Sagar Ahmed | Arpa | Dimple | Mamun | Bangla New Natok 2026","category":"Drama","youtubeId":"2vB56hQ2A2w","thumbnail":"https://img.youtube.com/vi/2vB56hQ2A2w/hqdefault.jpg","duration":"15:20","views":79900,"publisherName":"Shalik Studio","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-196-G_9Pug38gn0","title":"CM Vijay Thalapathy || New Movie 2026 Superhit (HD) Blockbuster South Hindi Dubbed Action Movie","category":"Movies","youtubeId":"G_9Pug38gn0","thumbnail":"https://img.youtube.com/vi/G_9Pug38gn0/hqdefault.jpg","duration":"15:20","views":80227,"publisherName":"Prime Hindi Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-197-KY237dXln9c","title":"Shunno Theke Suru | শূণ্য থেকে শুরু | Full Natok | Mosharraf Karim | Tanzika Amin | New Bangla Natok","category":"Drama","youtubeId":"KY237dXln9c","thumbnail":"https://img.youtube.com/vi/KY237dXln9c/hqdefault.jpg","duration":"15:20","views":80554,"publisherName":"Maasranga Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-198-Eccr6S37ms8","title":"Irumudi Full Movie In Hindi 2026 | Ravi Teja, Priya Bhavani Shankar | Breakdown & Explanation","category":"Movies","youtubeId":"Eccr6S37ms8","thumbnail":"https://img.youtube.com/vi/Eccr6S37ms8/hqdefault.jpg","duration":"15:20","views":80881,"publisherName":"South Cinema Indian","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-199-8secb4pEOhA","title":"The Vvaan Full Movie 2026 | Sidharth Malhotra | Tamannaah Bhatia | Sunil Grover | Explained & Facts","category":"Movies","youtubeId":"8secb4pEOhA","thumbnail":"https://img.youtube.com/vi/8secb4pEOhA/hqdefault.jpg","duration":"15:20","views":81208,"publisherName":"MOVIES TOMBI","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-200-7E-l0bzcfhc","title":"স্মার্ট সবজিওয়ালা | Smart Sobjiwala | Niloy Alamgir | Heme | Bangla Natok 2026 | NAF","category":"Drama","youtubeId":"7E-l0bzcfhc","thumbnail":"https://img.youtube.com/vi/7E-l0bzcfhc/hqdefault.jpg","duration":"15:20","views":81535,"publisherName":"NAF - Niloy Alamgir Films","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-201-CriYF_K_lb0","title":"New Movie 2026 Superhit (HD) Blockbuster South Indian Hindi Dubbed Action Movie || NARASIMHAPURAM","category":"Movies","youtubeId":"CriYF_K_lb0","thumbnail":"https://img.youtube.com/vi/CriYF_K_lb0/hqdefault.jpg","duration":"15:20","views":81862,"publisherName":"Sur Hindi Manoranjan","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-202-aSp2misTDj0","title":"Babui | বাবুই | Khairul Basar | Chamak | Shatabdi Wadud | Bangla New natok | Deepto Natok","category":"Drama","youtubeId":"aSp2misTDj0","thumbnail":"https://img.youtube.com/vi/aSp2misTDj0/hqdefault.jpg","duration":"15:20","views":82189,"publisherName":"Deepto Natok","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-203-7-ZGFSdxAeo","title":"TORTOISE (2026) New SOUTH BLOCKBUSTER Suspense Thriller Release Movies Dubbed In Hindi| Suraj, Vidya","category":"Movies","youtubeId":"7-ZGFSdxAeo","thumbnail":"https://img.youtube.com/vi/7-ZGFSdxAeo/hqdefault.jpg","duration":"15:20","views":82516,"publisherName":"South Hindi Dubbed","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-204-pHwJP9KWMy8","title":"বউ না বিপদ? | Bou na Bipod? | Tawsif Mahbub | Tanjim Totini | Exclusive Bangla Natok 2026","category":"Drama","youtubeId":"pHwJP9KWMy8","thumbnail":"https://img.youtube.com/vi/pHwJP9KWMy8/hqdefault.jpg","duration":"15:20","views":82843,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-205-U1mmfPPjv70","title":"\"Amitabh Bachchan's\" JHUND (2022) New Released Bollywood Hindi Movie | Latest Bollywood Movie","category":"Movies","youtubeId":"U1mmfPPjv70","thumbnail":"https://img.youtube.com/vi/U1mmfPPjv70/hqdefault.jpg","duration":"15:20","views":83170,"publisherName":"RDC Movie","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-206-lJG9odT3YW8","title":"80s Love Story | লাভ স্টোরি । Tawsif Mahbub | Tanjin Tisha | Exclusive Bangla Natok 2026","category":"Drama","youtubeId":"lJG9odT3YW8","thumbnail":"https://img.youtube.com/vi/lJG9odT3YW8/hqdefault.jpg","duration":"15:20","views":83497,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-207-qZAwiq8A8-U","title":"Action Blaster New Movie 2025 Superhit (HD) Blockbuster South Indian Hindi Dubbed Action Movie","category":"Movies","youtubeId":"qZAwiq8A8-U","thumbnail":"https://img.youtube.com/vi/qZAwiq8A8-U/hqdefault.jpg","duration":"15:20","views":83824,"publisherName":"GOLD 24K ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-208-1DNgsmtXpD0","title":"Intelligent Hacker - South Movie Hindi Dubbed | Unni Mukundan, Mahima Nambiar | 2025 Hacking Movie","category":"Movies","youtubeId":"1DNgsmtXpD0","thumbnail":"https://img.youtube.com/vi/1DNgsmtXpD0/hqdefault.jpg","duration":"15:20","views":84151,"publisherName":"Primetime Action Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-209-njpl5XymzIk","title":"দিল তো মানে না | Dil to mane na | Tawsif Mahbub | Naznin Niha | Exclusive Bangla Natok 2026","category":"Drama","youtubeId":"njpl5XymzIk","thumbnail":"https://img.youtube.com/vi/njpl5XymzIk/hqdefault.jpg","duration":"15:20","views":84478,"publisherName":"CMV Entertainment","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-210-9LGIeqL_sEQ","title":"New 2025 Tamil Horror Thriller Movie - Shraapit Khazana Hindi Dub Full Movie | Taman A, Malvi M","category":"Movies","youtubeId":"9LGIeqL_sEQ","thumbnail":"https://img.youtube.com/vi/9LGIeqL_sEQ/hqdefault.jpg","duration":"15:20","views":84805,"publisherName":"Action SuperHit","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-211-kuMSUl6XNNI","title":"Viswanath & Sons Full Movie in Hindi Dubbed 2026 | Suriya | Raveena T | Nassar S | Breakdown & Story","category":"Movies","youtubeId":"kuMSUl6XNNI","thumbnail":"https://img.youtube.com/vi/kuMSUl6XNNI/hqdefault.jpg","duration":"15:20","views":85132,"publisherName":"BHOJPURI COMRADE","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-212-HZiRwJoIUy4","title":"Sudhu Tomari Jonno | Nirjon Nahuel | Arohi Mim | Raj Sankor | Full Natok | Bangla Natok 2026","category":"Drama","youtubeId":"HZiRwJoIUy4","thumbnail":"https://img.youtube.com/vi/HZiRwJoIUy4/hqdefault.jpg","duration":"15:20","views":85459,"publisherName":"Capital Natok","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-213-GLBI8nmAe9I","title":"ভালোবাসার ঘর | Valobasar Ghor | Niloy Alomgir | Tania Brishty | Bangla Natok | New Natok 2026","category":"Drama","youtubeId":"GLBI8nmAe9I","thumbnail":"https://img.youtube.com/vi/GLBI8nmAe9I/hqdefault.jpg","duration":"15:20","views":85786,"publisherName":"Durbeen TV","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-214-pPh-bywXeHg","title":"সাথী পার্ট ২ | Sathi Part 2 | Notun Bangla Natok 2026 | Agun & Sathi | Palli Gram TV | RS NEWS VLOG ","category":"Drama","youtubeId":"pPh-bywXeHg","thumbnail":"https://img.youtube.com/vi/pPh-bywXeHg/hqdefault.jpg","duration":"15:20","views":86113,"publisherName":"RS NEWS VLOG ","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-215-H4D542BAmt4","title":"Featured Video H4D542BAmt4","category":"Entertainment","youtubeId":"H4D542BAmt4","thumbnail":"https://img.youtube.com/vi/H4D542BAmt4/hqdefault.jpg","duration":"15:20","views":86440,"publisherName":"Admin Verified","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-216-do7b_n6JTE8","title":"Magnificent Team (2026) | Hollywood Movie Hindi Dubbed | Francis Ng, Amanda Lee | New Chinese Movie","category":"Movies","youtubeId":"do7b_n6JTE8","thumbnail":"https://img.youtube.com/vi/do7b_n6JTE8/hqdefault.jpg","duration":"15:20","views":86767,"publisherName":"Eagle Home Entertainments","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-217-Nj-BelfjL8c","title":"প্রেম বালিকা | Prem Balika | Full Natok | Musfiq R Farhan | Mim Mantasha | New Bangla Natok 2026","category":"Drama","youtubeId":"Nj-BelfjL8c","thumbnail":"https://img.youtube.com/vi/Nj-BelfjL8c/hqdefault.jpg","duration":"15:20","views":87094,"publisherName":"DG Production","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-218-lKDqCe1xnSI","title":"Forensic Movie | New Hindi Movies 2026 | Vikrant Massey | Radhika Apte | Prachi Desai | Drama Movie","category":"Drama","youtubeId":"lKDqCe1xnSI","thumbnail":"https://img.youtube.com/vi/lKDqCe1xnSI/hqdefault.jpg","duration":"15:20","views":87421,"publisherName":"Venus Movies","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-219-ykCentWgoBg","title":"Skanda: The Attacker - South Indian Movie Hindi Dubbed - Ram Pothineni, Sreeleela, Saiee Manjrekar","category":"Movies","youtubeId":"ykCentWgoBg","thumbnail":"https://img.youtube.com/vi/ykCentWgoBg/hqdefault.jpg","duration":"15:20","views":87748,"publisherName":"Zee Movies Hindi","publisherVerified":true,"isShort":true,"contentType":"short","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-220-zmH-RLLvQTc","title":"ফাঁদ  পার্ট ২ |  FAAD Part 2 | Notun Bangla Natok | Agun & Sathi | Palli Gram TV | Robiul Sekh","category":"Drama","youtubeId":"zmH-RLLvQTc","thumbnail":"https://img.youtube.com/vi/zmH-RLLvQTc/hqdefault.jpg","duration":"15:20","views":88075,"publisherName":"Palli Gram TV","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-221-VeRHPnu_I_c","title":"তিন বেলা ভাত | Tin Bela Bhat | Full Natok | Tutul Chowdhury | Farzana Ahsan Mihi | Bangla Natok 2026","category":"Drama","youtubeId":"VeRHPnu_I_c","thumbnail":"https://img.youtube.com/vi/VeRHPnu_I_c/hqdefault.jpg","duration":"15:20","views":88402,"publisherName":"Tutul Chowdhury","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-222-CIoyEhVLI-A","title":"Ghorpora Jamai | ঘরপোড়া জামাই | Niloy Alamgir | JS Heme | Tania Brishty | New Natok 2026","category":"Drama","youtubeId":"CIoyEhVLI-A","thumbnail":"https://img.youtube.com/vi/CIoyEhVLI-A/hqdefault.jpg","duration":"15:20","views":88729,"publisherName":"VisualScene STUDIO","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-223-QtrV1bxtkyg","title":"Thalapathy Vijay’s RAW Chief (रॉ चीफ) - South indian Action Hindi Dubbed Movie | Pooja Hegde","category":"Movies","youtubeId":"QtrV1bxtkyg","thumbnail":"https://img.youtube.com/vi/QtrV1bxtkyg/hqdefault.jpg","duration":"15:20","views":89056,"publisherName":"SDE Movieplex","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-224-MQV0s2k0Uig","title":"সৎ সন্তান | Sot Sontan | Tonmoy Sohel, Mim Chowdhury | New Natok 2026 | YouTube","category":"Drama","youtubeId":"MQV0s2k0Uig","thumbnail":"https://img.youtube.com/vi/MQV0s2k0Uig/hqdefault.jpg","duration":"15:20","views":89383,"publisherName":"Youtube Drama","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-225-KH2777NdFfo","title":"GOLMAAL 5 Full Comedy Movie | Akshay Kumar, Ajay Devgn, Arshad Warsi, Saif Ali Khan | New Movie 2026","category":"Movies","youtubeId":"KH2777NdFfo","thumbnail":"https://img.youtube.com/vi/KH2777NdFfo/hqdefault.jpg","duration":"15:20","views":89710,"publisherName":"Movie Shift","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-226-0AoYE_aBJqE","title":"Rust | South Indian Released Full Hindi Dubbed Action Movies | Ramcharan New Movie 2026","category":"Movies","youtubeId":"0AoYE_aBJqE","thumbnail":"https://img.youtube.com/vi/0AoYE_aBJqE/hqdefault.jpg","duration":"15:20","views":90037,"publisherName":"Shyam Studio Originals","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-227-nGeAN3t7s5U","title":"Ravi The Soldier New Release Hindi Dubbed Full Action Movie | Ravi Teja, Mohanlal, Prakash, Honey","category":"Movies","youtubeId":"nGeAN3t7s5U","thumbnail":"https://img.youtube.com/vi/nGeAN3t7s5U/hqdefault.jpg","duration":"15:20","views":90364,"publisherName":"Swami Films CONTENT","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""},{"id":"vid-228-cefk2-GmBPY","title":"New Latest (2026) | Tamannaah Bhatia | Full Hindi Dubbed Movie | Blockbuster South Thriller Movie","category":"Movies","youtubeId":"cefk2-GmBPY","thumbnail":"https://img.youtube.com/vi/cefk2-GmBPY/hqdefault.jpg","duration":"15:20","views":90691,"publisherName":"Prime Global Studios","publisherVerified":true,"isShort":false,"contentType":"video","adsEnabled":true,"rewardEligible":true,"sampleVideoUrl":""}];
+
+    const CATEGORIES = [
+      { id: "all", name: "সব ভিডিও (All)" },
+      { id: "drama", name: "নাটক (Drama)" },
+      { id: "songs", name: "গান (Songs)" },
+      { id: "movies", name: "সিনেমা (Movies)" },
+      { id: "shorts", name: "রিলস ও শর্টস (Reels)" },
+      { id: "entertainment", name: "বিনোদন (Entertainment)" }
+    ];
+
+    // Main App Component
+    function App() {
+      // LocalStorage Persistence with auto-refresh if old cache had few videos
+      const [videos, setVideos] = useState(() => {
+        try {
+          const saved = localStorage.getItem('amz_monetiz_videos_v4');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length >= 20) {
+              return parsed;
+            }
+          }
+          return INITIAL_VIDEOS;
+        } catch (e) {
+          return INITIAL_VIDEOS;
+        }
+      });
+      const [wallet, setWallet] = useState(() => {
+        try {
+          const saved = localStorage.getItem('amz_wallet_v3');
+          return saved ? JSON.parse(saved) : { points: 150, usd: 0.03, impressions: 30 };
+        } catch (e) {
+          return { points: 150, usd: 0.03, impressions: 30 };
+        }
+      });
+      const [currentUser, setCurrentUser] = useState(() => {
+        try {
+          const saved = localStorage.getItem('amz_user_v3');
+          return saved ? JSON.parse(saved) : {
+            name: "MD. Tanvir Ahmed",
+            email: "publisher@amazingwatchearn.com",
+            mobile: "01712-345678",
+            isVerified: true
+          };
+        } catch (e) {
+          return {
+            name: "MD. Tanvir Ahmed",
+            email: "publisher@amazingwatchearn.com",
+            mobile: "01712-345678",
+            isVerified: true
+          };
+        }
+      });
+
+      const [role, setRole] = useState('user'); // 'user' | 'admin' | 'buyer'
+      const [activeTab, setActiveTab] = useState('home'); // 'home' | 'reels' | 'drama' | 'songs' | 'my-videos' | 'profile' | 'admin_overview'
+      const [activeCategory, setActiveCategory] = useState('all');
+      
+      // Video Player State
+      const [playingVideo, setPlayingVideo] = useState(null);
+      const [isPlayerShort, setIsPlayerShort] = useState(false);
+      const [useDirectPlayer, setUseDirectPlayer] = useState(false);
+      const [adCountdown, setAdCountdown] = useState(10);
+      const [adActive, setAdActive] = useState(false);
+      const [adRewarded, setAdRewarded] = useState(false);
+
+      // Modals
+      const [showUploadModal, setShowUploadModal] = useState(false);
+      const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+      const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
+      const [adminPass, setAdminPass] = useState('');
+      const [notification, setNotification] = useState(null);
+      const [searchQuery, setSearchQuery] = useState('');
+
+      // Upload inputs
+      const [uploadTitle, setUploadTitle] = useState('');
+      const [uploadUrl, setUploadUrl] = useState('');
+      const [uploadCat, setUploadCat] = useState('Drama');
+      const [uploadIsShort, setUploadIsShort] = useState(false);
+
+      // Reels Feed State
+      const [reelIndex, setReelIndex] = useState(0);
+      const [reelsSoundMuted, setReelsSoundMuted] = useState(false);
+      const [reelsLikes, setReelsLikes] = useState({});
+      const [reelAdTimer, setReelAdTimer] = useState(10);
+      const [claimedReels, setClaimedReels] = useState({});
+
+      const reelsList = useMemo(() => {
+        const shortsOnly = videos.filter(v => v.isShort || v.contentType === 'short' || v.category.toLowerCase().includes('short'));
+        return shortsOnly.length > 0 ? shortsOnly : videos;
+      }, [videos]);
+
+      // Save to localStorage
+      useEffect(() => {
+        try { localStorage.setItem('amz_monetiz_videos_v4', JSON.stringify(videos)); } catch(e){}
+      }, [videos]);
+      useEffect(() => {
+        try { localStorage.setItem('amz_wallet_v3', JSON.stringify(wallet)); } catch(e){}
+      }, [wallet]);
+      useEffect(() => {
+        try { localStorage.setItem('amz_user_v3', JSON.stringify(currentUser)); } catch(e){}
+      }, [currentUser]);
+
+      const triggerNotification = (msg) => {
+        setNotification(msg);
+        setTimeout(() => setNotification(null), 3500);
+      };
+
+      // Watch Video Handler
+      const handleWatchVideo = (video, forceShortMode = false) => {
+        setPlayingVideo(video);
+        const isBig = !video.isShort && video.contentType !== 'short' && !video.category.toLowerCase().includes('short');
+        setIsPlayerShort(forceShortMode ? true : !isBig);
+        setUseDirectPlayer(false);
+        setAdCountdown(10);
+        setAdActive(true);
+        setAdRewarded(false);
+      };
+
+      // Ad Countdown Timer for Video Player Modal
+      useEffect(() => {
+        let timer;
+        if (adActive && playingVideo) {
+          timer = setInterval(() => {
+            setAdCountdown(prev => {
+              if (prev <= 1) {
+                clearInterval(timer);
+                setAdActive(false);
+                setAdRewarded(true);
+                setWallet(w => ({
+                  ...w,
+                  points: w.points + 5,
+                  usd: Number((w.usd + (5 / 5000)).toFixed(4)),
+                  impressions: w.impressions + 1
+                }));
+                triggerNotification("৫ পয়েন্ট অর্জিত হয়েছে! (10s Ad Verified)");
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+        return () => clearInterval(timer);
+      }, [adActive, playingVideo]);
+
+      // Reels Ad Countdown Timer
+      useEffect(() => {
+        if (activeTab !== 'reels') return;
+        const currentReel = reelsList[reelIndex];
+        if (!currentReel || claimedReels[currentReel.id]) return;
+
+        setReelAdTimer(10);
+        const timer = setInterval(() => {
+          setReelAdTimer(prev => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              setClaimedReels(c => ({ ...c, [currentReel.id]: true }));
+              setWallet(w => ({
+                ...w,
+                points: w.points + 5,
+                usd: Number((w.usd + (5 / 5000)).toFixed(4)),
+                impressions: w.impressions + 1
+              }));
+              triggerNotification("+৫ পয়েন্ট অর্জিত হয়েছে! (Reels Ad Reward)");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        return () => clearInterval(timer);
+      }, [activeTab, reelIndex, reelsList, claimedReels]);
+
+      // Video Upload Handler
+      const handleUploadSubmit = (e) => {
+        e.preventDefault();
+        if (!uploadTitle.trim() || !uploadUrl.trim()) return;
+
+        let yId = "kJQP7kiw5Fk";
+        if (uploadUrl.includes("v=")) {
+          yId = uploadUrl.split("v=")[1].split("&")[0];
+        } else if (uploadUrl.includes("youtu.be/")) {
+          yId = uploadUrl.split("youtu.be/")[1].split("?")[0];
+        } else if (uploadUrl.includes("/shorts/")) {
+          yId = uploadUrl.split("/shorts/")[1].split("?")[0];
+        }
+
+        const newVid = {
+          id: "vid-" + Date.now(),
+          title: uploadTitle.trim(),
+          category: uploadCat,
+          youtubeId: yId,
+          sampleVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+          thumbnail: "https://img.youtube.com/vi/" + yId + "/hqdefault.jpg",
+          duration: uploadIsShort ? "0:45" : "15:20",
+          views: 1,
+          publisherName: currentUser.name,
+          publisherVerified: currentUser.isVerified,
+          isShort: uploadIsShort,
+          contentType: uploadIsShort ? "short" : "video",
+          adsEnabled: true,
+          rewardEligible: true
+        };
+
+        setVideos([newVid, ...videos]);
+        setShowUploadModal(false);
+        setUploadTitle('');
+        setUploadUrl('');
+        setWallet(w => ({ ...w, points: w.points + 10 }));
+        triggerNotification("ভিডিও সফলভাবে আপলোড হয়েছে! (+১০ পয়েন্ট রিওয়ার্ড)");
+      };
+
+      // Filtered Videos for Home Grid
+      const displayedVideos = videos.filter(v => {
+        if (searchQuery.trim()) {
+          return v.title.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+        if (activeTab === 'drama') return v.category.toLowerCase().includes('drama');
+        if (activeTab === 'songs') return v.category.toLowerCase().includes('song');
+
+        if (activeCategory === 'shorts') return v.isShort || v.contentType === 'short';
+        if (activeCategory === 'drama') return v.category.toLowerCase().includes('drama');
+        if (activeCategory === 'songs') return v.category.toLowerCase().includes('song');
+        if (activeCategory === 'islamic') return v.category.toLowerCase().includes('islamic') || v.category.toLowerCase().includes('waz');
+        if (activeCategory === 'news') return v.category.toLowerCase().includes('news') || v.category.toLowerCase().includes('history');
+        return true;
+      });
+
+      return (
+        <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col font-sans pb-24">
+          
+          {/* Notification Toast */}
+          {notification && (
+            <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-extrabold text-xs shadow-2xl flex items-center gap-2 animate-bounce">
+              <CheckCircle2 className="w-4 h-4 fill-black text-emerald-400" />
+              <span>{notification}</span>
+            </div>
+          )}
+
+          {/* Top Navbar */}
+          <header className="sticky top-0 z-40 bg-[#060911]/95 backdrop-blur-xl border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+              
+              {/* Brand Logo */}
+              <div 
+                onClick={() => { setActiveTab('home'); setRole('user'); }}
+                className="flex items-center gap-2.5 cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 p-0.5 shadow-lg shadow-cyan-500/20">
+                  <div className="w-full h-full bg-[#070b16] rounded-[10px] flex items-center justify-center">
+                    <Play className="w-5 h-5 text-cyan-400 fill-cyan-400" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-sm sm:text-base font-black tracking-tight text-white font-display">
+                    Amazing Monetiz
+                  </h1>
+                  <p className="text-[10px] text-cyan-400 font-semibold tracking-wider uppercase">
+                    Watch · Publish · Monetize
+                  </p>
+                </div>
+              </div>
+
+              {/* Right cluster */}
+              <div className="flex items-center gap-2">
+                {/* Search Bar */}
+                <div className="relative hidden md:block">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="ভিডিও বা গান খুঁজুন..."
+                    className="w-44 lg:w-60 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-2 text-slate-400 hover:text-white">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Earnings pill */}
+                <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0d1527] border border-cyan-500/30 text-xs font-mono">
+                  <Coins className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-bold text-amber-400">{wallet.points} pts</span>
+                  <span className="text-slate-400">·</span>
+                  <span className="font-bold text-emerald-400">${wallet.usd}</span>
+                </div>
+
+                {/* Upload Button */}
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="sweep-rtl flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold text-xs shadow-md shadow-cyan-500/20 active:scale-95 transition-all"
+                >
+                  <Upload className="w-3.5 h-3.5 text-black" />
+                  <span className="hidden sm:inline">আপলোড (+১০ pts)</span>
+                </button>
+
+                {/* Persona / Role Selector */}
+                <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-xs font-semibold">
+                  <button
+                    onClick={() => { setRole('user'); setActiveTab('home'); }}
+                    className={`px-2 py-1 rounded-lg transition-all ${role === 'user' ? 'bg-cyan-500 text-black font-bold' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    User
+                  </button>
+                  <button
+                    onClick={() => { setRole('user'); setActiveTab('my-videos'); }}
+                    className={`px-2 py-1 rounded-lg transition-all ${activeTab === 'my-videos' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Publisher
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (role === 'admin') {
+                        setRole('user');
+                        setActiveTab('home');
+                      } else {
+                        setShowAdminLoginModal(true);
+                      }
+                    }}
+                    className={`p-1.5 rounded-lg transition-all flex items-center justify-center ${role === 'admin' ? 'bg-red-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+                    title="Admin"
+                    aria-label="Admin"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </header>
+
+          {/* MAIN BODY ROUTING */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 pt-4">
+
+            {/* TAB: REELS FEED (FINGER SWIPE UP VERTICAL FEED) */}
+            {activeTab === 'reels' ? (
+              <div className="relative w-full h-[calc(100vh-64px-68px)] max-h-[860px] bg-black rounded-3xl overflow-hidden shadow-2xl flex justify-center border border-white/10 select-none">
+                
+                {/* Desktop Prev / Next Controls */}
+                <div className="hidden sm:flex flex-col items-center justify-center gap-3 absolute right-4 top-1/2 -translate-y-1/2 z-30">
+                  <button
+                    onClick={() => setReelIndex(prev => Math.max(0, prev - 1))}
+                    disabled={reelIndex === 0}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white backdrop-blur-md border border-white/15"
+                    title="পূর্ববর্তী রিলস"
+                  >
+                    <ChevronUp className="w-5 h-5" />
+                  </button>
+                  <span className="text-xs font-mono font-bold text-slate-300 bg-black/60 px-2.5 py-1 rounded-full border border-white/10">
+                    {reelIndex + 1} / {reelsList.length}
+                  </span>
+                  <button
+                    onClick={() => setReelIndex(prev => Math.min(reelsList.length - 1, prev + 1))}
+                    disabled={reelIndex === reelsList.length - 1}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white backdrop-blur-md border border-white/15"
+                    title="পরবর্তী রিলস"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Active Reel Container */}
+                {reelsList[reelIndex] && (
+                  <div className="relative w-full max-w-[420px] h-full bg-[#070b14] flex items-center justify-center overflow-hidden">
+                    
+                    {/* Video Player */}
+                    <div className="relative w-full h-full aspect-[9/16] bg-black flex items-center justify-center overflow-hidden">
+                      <iframe
+                        className="w-full h-full object-cover border-0"
+                        src={`https://www.youtube.com/embed/${reelsList[reelIndex].youtubeId}?autoplay=1&enablejsapi=1&rel=0&playsinline=1&controls=1&modestbranding=1&mute=${reelsSoundMuted ? 1 : 0}${window.location.protocol.startsWith('http') && window.location.origin && window.location.origin !== 'null' ? '&origin=' + encodeURIComponent(window.location.origin) : ''}`}
+                        title={reelsList[reelIndex].title}
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+
+                      {/* Subtle Vignette Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40 pointer-events-none" />
+                    </div>
+
+                    {/* Top Bar on Reel */}
+                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase shadow-lg flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          রিলস (Reels)
+                        </span>
+
+                        {claimedReels[reelsList[reelIndex].id] ? (
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-500/90 text-black text-[10px] font-black flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 fill-black text-emerald-400" />
+                            +৫ পয়েন্ট অর্জিত
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-black font-mono animate-pulse">
+                            অ্যাড: {reelAdTimer}s (+৫ পয়েন্ট)
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => setReelsSoundMuted(!reelsSoundMuted)}
+                        className="p-2 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md"
+                        title={reelsSoundMuted ? 'সাউন্ড চালু করুন' : 'সাউন্ড বন্ধ করুন'}
+                      >
+                        {reelsSoundMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+                      </button>
+                    </div>
+
+                    {/* Right Floating Actions */}
+                    <div className="absolute right-3 bottom-16 flex flex-col items-center gap-4 z-20 pointer-events-auto">
+                      {/* Publisher Avatar */}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-pink-500 p-0.5 shadow-xl">
+                        <div className="w-full h-full rounded-full bg-[#0a0f1d] flex items-center justify-center text-white text-xs font-black">
+                          {reelsList[reelIndex].publisherName.charAt(0)}
+                        </div>
+                      </div>
+
+                      {/* Like */}
+                      <button
+                        onClick={() => {
+                          const rId = reelsList[reelIndex].id;
+                          setReelsLikes(prev => ({
+                            ...prev,
+                            [rId]: {
+                              count: (prev[rId]?.count || 120) + (prev[rId]?.liked ? -1 : 1),
+                              liked: !prev[rId]?.liked
+                            }
+                          }));
+                        }}
+                        className="flex flex-col items-center gap-1 text-white active:scale-125 transition-transform"
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border ${reelsLikes[reelsList[reelIndex].id]?.liked ? 'bg-red-600 border-red-500' : 'bg-black/60 border-white/20'}`}>
+                          <Heart className="w-5 h-5" />
+                        </div>
+                        <span className="text-[10px] font-mono font-bold">
+                          {reelsLikes[reelsList[reelIndex].id]?.count || 120}
+                        </span>
+                      </button>
+
+                      {/* Direct YouTube */}
+                      <a
+                        href={`https://www.youtube.com/watch?v=${reelsList[reelIndex].youtubeId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-10 h-10 rounded-full bg-red-600/30 border border-red-500/50 flex items-center justify-center text-red-400 backdrop-blur-md hover:text-white"
+                        title="YouTube-এ সরাসরি দেখুন"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </div>
+
+                    {/* Bottom Info on Reel */}
+                    <div className="absolute bottom-3 left-3 right-16 z-20 pointer-events-auto text-left">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-xs font-black text-white flex items-center gap-1">
+                          @{reelsList[reelIndex].publisherName}
+                          {reelsList[reelIndex].publisherVerified && (
+                            <CheckCircle2 className="w-3 h-3 fill-emerald-500 text-black" />
+                          )}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[9px] font-bold">
+                          {reelsList[reelIndex].category}
+                        </span>
+                      </div>
+                      <h3 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-tight">
+                        {reelsList[reelIndex].title}
+                      </h3>
+                      
+                      {/* Swipe Hint */}
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-cyan-300 font-semibold">
+                        <span>👆 আঙুল দিয়ে উপরে স্ক্রল করুন বা পাশের বাটনে ক্লিক করুন</span>
+                        <button
+                          onClick={() => setReelIndex(prev => (prev + 1) % reelsList.length)}
+                          className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-white rounded font-bold"
+                        >
+                          পরবর্তী রিলস &rarr;
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bottom 10s Ad Progress Bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                      <div 
+                        className="h-full bg-gradient-to-r from-cyan-400 via-amber-400 to-emerald-400 transition-all duration-1000"
+                        style={{ width: ((10 - reelAdTimer) / 10) * 100 + "%" }}
+                      />
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            ) : role === 'admin' ? (
+              /* TAB: ADMIN PANEL WITH EXIT 'X' & LOGOUT */
+              <div className="space-y-6">
+                
+                {/* Admin Header Card */}
+                <div className="relative rounded-3xl bg-gradient-to-r from-[#0c1428] via-[#0f1b36] to-[#0a1020] border border-cyan-500/40 p-6 shadow-2xl sweep-rtl">
+                  
+                  {/* Dedicated Corner Exit Button (✕) */}
+                  <button
+                    onClick={() => { setRole('user'); setActiveTab('home'); }}
+                    className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-red-600 text-white transition-all shadow-lg border border-white/20 active:scale-95"
+                    title="প্যানেল থেকে বের হন (✕ Exit)"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-12">
+                    <div>
+                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-bold uppercase">
+                        Admin Control Center
+                      </span>
+                      <h2 className="text-2xl font-black text-white mt-1">
+                        এডমিন ম্যানেজমেন্ট প্যানেল
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-1">
+                        ব্যবহারকারী, ভিডিও, ভেরিফাইড ব্যাচ রেট ও মনিটাইজেশন পরিচালনা করুন।
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Explicit Admin Logout */}
+                      <button
+                        onClick={() => {
+                          setRole('user');
+                          setActiveTab('home');
+                          triggerNotification("এডমিন সফলভাবে লগআউট হয়েছে!");
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/40 text-xs font-bold active:scale-95 transition-all"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>এডমিন লগআউট</span>
+                      </button>
+
+                      {/* Exit Cross Button */}
+                      <button
+                        onClick={() => { setRole('user'); setActiveTab('home'); }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold active:scale-95 transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                        <span>প্যানেল প্রস্থান (Exit)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Admin Tab Selector */}
+                  <div className="flex items-center gap-2 overflow-x-auto mt-6 pt-4 border-t border-white/10">
+                    <button
+                      onClick={() => setActiveTab('admin_overview')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'admin_overview' || activeTab === 'admin' ? 'bg-cyan-500 text-black' : 'bg-white/5 text-slate-400'}`}
+                    >
+                      সারাংশ (Overview)
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('admin_verifications')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'admin_verifications' ? 'bg-cyan-500 text-black' : 'bg-white/5 text-slate-400'}`}
+                    >
+                      ভেরিফাইড ব্যাচ রেট
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('admin_videos')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'admin_videos' ? 'bg-cyan-500 text-black' : 'bg-white/5 text-slate-400'}`}
+                    >
+                      ভিডিও ক্লিন ({videos.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* Admin Tab Contents */}
+                {activeTab === 'admin_verifications' ? (
+                  <div className="p-6 rounded-3xl bg-[#090e1d] border border-cyan-500/20">
+                    <h3 className="text-lg font-black text-white mb-2">ভেরিফাইড ব্যাচ অফিশিয়াল রেট ও পেমেন্ট</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                        <span className="text-xs font-bold text-amber-400 uppercase">১ মাস মেয়াদ</span>
+                        <div className="text-2xl font-black text-white mt-1">৩০০ টাকা (300 BDT)</div>
+                        <p className="text-xs text-slate-300 mt-1">সবুজ টিক চিহ্ন ব্যাচ এবং ৫ পয়েন্ট বুস্ট</p>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+                        <span className="text-xs font-bold text-emerald-400 uppercase">৬ মাস মেয়াদ (সেভ ৩০০ টাকা)</span>
+                        <div className="text-2xl font-black text-white mt-1">১৫০০ টাকা (1500 BDT)</div>
+                        <p className="text-xs text-slate-300 mt-1">অর্ধবার্ষিক প্রিমিয়াম পাবলিশার টিক ব্যাচ</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10 text-xs space-y-1">
+                      <div><strong>bKash (Personal):</strong> 01912-345678</div>
+                      <div><strong>Nagad (Merchant):</strong> 01712-345678</div>
+                      <div><strong>Binance Pay ID:</strong> 87654321 (USDT TRC20)</div>
+                    </div>
+                  </div>
+                ) : activeTab === 'admin_videos' ? (
+                  <div className="p-6 rounded-3xl bg-[#090e1d] border border-white/10">
+                    <h3 className="text-lg font-black text-white mb-3">ভিডিও ও স্টোরেজ ম্যানেজমেন্ট</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {videos.map(v => (
+                        <div key={v.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
+                          <div className="truncate">
+                            <div className="text-xs font-bold text-white truncate">{v.title}</div>
+                            <span className="text-[10px] text-cyan-400">{v.category} · {v.duration}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setVideos(videos.filter(x => x.id !== v.id));
+                              triggerNotification("ভিডিও ডিলিট করা হয়েছে!");
+                            }}
+                            className="p-1.5 rounded-lg bg-red-600/20 text-red-300 hover:bg-red-600 hover:text-white"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="p-5 rounded-2xl bg-[#090e1d] border border-cyan-500/20">
+                      <span className="text-xs text-slate-400">Total Videos</span>
+                      <div className="text-2xl font-black text-white mt-1">{videos.length}</div>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[#090e1d] border border-emerald-500/20">
+                      <span className="text-xs text-slate-400">Total Ad Impressions</span>
+                      <div className="text-2xl font-black text-emerald-400 mt-1">{wallet.impressions}</div>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[#090e1d] border border-amber-500/20">
+                      <span className="text-xs text-slate-400">Point Pool</span>
+                      <div className="text-2xl font-black text-amber-400 mt-1">{wallet.points}</div>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-[#090e1d] border border-purple-500/20">
+                      <span className="text-xs text-slate-400">Min Withdrawal</span>
+                      <div className="text-2xl font-black text-purple-400 mt-1">$25 USD</div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            ) : activeTab === 'my-videos' ? (
+              /* TAB: PUBLISHER CHANNEL WITH EXIT 'X' & LOGOUT */
+              <div className="space-y-6">
+                
+                {/* Header card with dedicated corner 'X' and logout */}
+                <div className="relative rounded-3xl bg-gradient-to-r from-[#0c1224] via-[#0e162c] to-[#0a1020] border border-cyan-500/30 p-6 shadow-2xl sweep-rtl">
+                  
+                  {/* Corner Exit 'X' Button */}
+                  <button
+                    onClick={() => setActiveTab('home')}
+                    className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-red-600 text-white transition-all shadow-lg border border-white/20 active:scale-95"
+                    title="হোম পেজে ফিরে যান (✕ Close)"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 pr-12">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-cyan-500/20 border-2 border-cyan-400/50 flex items-center justify-center text-cyan-400 text-2xl font-black">
+                        <UserCheck className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl sm:text-2xl font-black text-white">{currentUser.name}</h2>
+                          {currentUser.isVerified && (
+                            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                              <CheckCircle2 className="w-3.5 h-3.5 fill-emerald-500 text-black" />
+                              ভেরিফাইড পাবলিশার
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{currentUser.email} · {currentUser.mobile}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowVerifiedModal(true)}
+                        className="px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold"
+                      >
+                        ভেরিফাইড ব্যাচ পান
+                      </button>
+
+                      {/* Publisher Logout */}
+                      <button
+                        onClick={() => {
+                          setCurrentUser({
+                            name: "Guest Publisher",
+                            email: "guest@amazingwatchearn.com",
+                            mobile: "01XXXXXXXXX",
+                            isVerified: false
+                          });
+                          setActiveTab('home');
+                          triggerNotification("পাবলিশার লগআউট সম্পন্ন হয়েছে!");
+                        }}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 text-xs font-bold active:scale-95 transition-all"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>লগআউট</span>
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('home')}
+                        className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* My Uploaded Videos Grid */}
+                <div>
+                  <h3 className="text-base font-bold text-white mb-4">আমার আপলোডকৃত ভিডিওসমূহ</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {videos.filter(v => v.publisherName === currentUser.name).map(v => (
+                      <div key={v.id} className="rounded-2xl bg-[#0b1020] border border-white/10 overflow-hidden shadow-lg">
+                        <div 
+                          onClick={() => handleWatchVideo(v)}
+                          className={`relative w-full overflow-hidden cursor-pointer ${v.isShort ? 'aspect-[9/16] max-h-[360px]' : 'aspect-video'}`}
+                        >
+                          <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <Play className="w-10 h-10 text-cyan-400 fill-cyan-400" />
+                          </div>
+                          <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
+                            {v.duration}
+                          </span>
+                        </div>
+                        <div className="p-3 flex items-center justify-between">
+                          <div className="truncate">
+                            <h4 className="text-xs font-bold text-white truncate">{v.title}</h4>
+                            <span className="text-[10px] text-cyan-400">{v.category}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setVideos(videos.filter(x => x.id !== v.id));
+                              triggerNotification("ভিডিও ডিলিট হয়েছে");
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-400"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              /* TAB: HOME / DRAMA / SONGS / ALL VIDEOS */
+              <div className="space-y-6">
+                
+                {/* Hero Showcase (16:9 Aspect Ratio) */}
+                {activeTab === 'home' && activeCategory === 'all' && videos[0] && (
+                  <div className="relative rounded-3xl bg-[#0b1022] border border-cyan-500/30 overflow-hidden shadow-2xl sweep-rtl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12">
+                      <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-bold uppercase">
+                              Featured 16:9 Video
+                            </span>
+                            <span className="text-[10px] text-emerald-400 font-bold">5 Points Ad Reward</span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight font-display">
+                            {videos[0].title}
+                          </h2>
+                          <p className="text-xs sm:text-sm text-slate-300 mt-2 line-clamp-2">
+                            ১০ সেকেন্ড অ্যাড ভেরিফিকেশন দেখে প্রতিবার ৫ পয়েন্ট রিওয়ার্ড অর্জন করুন।
+                          </p>
+                        </div>
+                        <div className="mt-6 flex items-center gap-3">
+                          <button
+                            onClick={() => handleWatchVideo(videos[0])}
+                            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 transition-all"
+                          >
+                            <Play className="w-4 h-4 fill-black" />
+                            <span>এখনই দেখুন (16:9 Frame)</span>
+                          </button>
+                          <span className="text-xs text-slate-400 font-mono">Duration: {videos[0].duration}</span>
+                        </div>
+                      </div>
+
+                      {/* 16:9 Preview Frame */}
+                      <div 
+                        onClick={() => handleWatchVideo(videos[0])}
+                        className="lg:col-span-5 relative aspect-video bg-slate-900 cursor-pointer overflow-hidden"
+                      >
+                        <img src={videos[0].thumbnail} alt="Hero" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <div className="w-14 h-14 rounded-full bg-cyan-500 text-white flex items-center justify-center shadow-2xl">
+                            <Play className="w-6 h-6 fill-white ml-0.5" />
+                          </div>
+                        </div>
+                        <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 text-[10px] font-mono text-white rounded">
+                          16:9 Frame
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Trending YouTube Shorts Carousel (9:16 Frame) with link to Reels */}
+                {activeTab === 'home' && (
+                  <div className="p-5 rounded-3xl bg-gradient-to-r from-red-950/20 via-[#0d1326] to-[#0a0f1d] border border-red-500/25 shadow-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 text-red-400" />
+                        <h3 className="text-base font-black text-white font-display">
+                          ট্রেন্ডিং YouTube শর্টস (9:16 Vertical)
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[9px] font-black uppercase">
+                          Reels
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('reels')}
+                        className="text-xs text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
+                      >
+                        <span>সব রিলস দেখুন (Swipe Feed) &rarr;</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                      {videos.filter(v => v.isShort || v.contentType === 'short').slice(0, 6).map(s => (
+                        <div
+                          key={s.id}
+                          onClick={() => handleWatchVideo(s, true)}
+                          className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-white/10 hover:border-red-500/60 cursor-pointer shadow-md transition-all active:scale-95"
+                        >
+                          <img src={s.thumbnail} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30" />
+                          <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-600 text-white text-[8px] font-bold uppercase rounded">
+                            Shorts
+                          </span>
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <h4 className="text-[11px] font-bold text-white line-clamp-2 leading-tight">{s.title}</h4>
+                            <span className="text-[9px] text-emerald-400 font-bold block mt-1">+5 pts</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Category Filter Chips */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat.id ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'bg-[#0c1122] text-slate-300 hover:text-white border border-white/10'}`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Main Video Grid: BIG VIDEOS USE 16:9 FRAME */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-black text-white">
+                      {activeCategory === 'shorts' ? 'সমস্ত শর্টস (9:16)' : 'ভিডিও তালিকা (16:9 Widescreen)'}
+                    </h3>
+                    <span className="text-xs text-slate-400 font-mono">
+                      মোট: {displayedVideos.length} টি ভিডিও
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {displayedVideos.map(video => {
+                      const isShort = video.isShort || video.contentType === 'short';
+                      return (
+                        <div
+                          key={video.id}
+                          className="group relative flex flex-col rounded-2xl bg-[#0b1020]/90 border border-white/10 overflow-hidden shadow-lg hover:border-cyan-500/40 transition-all duration-300"
+                        >
+                          {/* 16:9 Frame for Regular/Big Videos, 9:16 for Shorts */}
+                          <div 
+                            onClick={() => handleWatchVideo(video, isShort)}
+                            className={`relative w-full overflow-hidden cursor-pointer sweep-rtl bg-slate-900 ${isShort ? 'aspect-[9/16] max-h-[380px]' : 'aspect-video'}`}
+                          >
+                            <img
+                              src={video.thumbnail}
+                              alt={video.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                            
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                              <div className="w-12 h-12 rounded-full bg-cyan-500 text-white flex items-center justify-center shadow-lg shadow-cyan-500/50">
+                                <Play className="w-5 h-5 fill-white ml-0.5" />
+                              </div>
+                            </div>
+
+                            {/* Badge and Duration */}
+                            <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-slate-200">
+                              {video.duration} {isShort ? '(9:16)' : '(16:9)'}
+                            </span>
+                            
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-[9px] font-bold text-cyan-300">
+                              {video.category}
+                            </span>
+                          </div>
+
+                          {/* Info section */}
+                          <div className="p-3 flex flex-col justify-between flex-1">
+                            <div>
+                              <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                                <span className="flex items-center gap-1 font-semibold text-slate-300">
+                                  <UserCheck className="w-3 h-3 text-cyan-400" />
+                                  {video.publisherName}
+                                  {video.publisherVerified && (
+                                    <CheckCircle2 className="w-3 h-3 fill-emerald-500 text-black inline" />
+                                  )}
+                                </span>
+                                <span className="text-emerald-400 font-bold">+5 pts</span>
+                              </div>
+                              <h4 
+                                onClick={() => handleWatchVideo(video, isShort)}
+                                className="text-xs sm:text-sm font-bold text-white line-clamp-2 hover:text-cyan-300 transition-colors cursor-pointer"
+                              >
+                                {video.title}
+                              </h4>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+          </main>
+
+          {/* VIDEO PLAYER MODAL (16:9 Widescreen for Big Videos & 9:16 Vertical for Shorts) */}
+          {playingVideo && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/95 backdrop-blur-xl animate-fade-in">
+              <div className={`relative w-full bg-[#090d1a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col ${isPlayerShort ? 'max-w-[400px] aspect-[9/16] h-[90vh]' : 'max-w-4xl aspect-video max-h-[92vh]'}`}>
+                
+                {/* Top Control Bar */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-[#060911] z-20">
+                  <div className="flex items-center gap-2 truncate pr-4">
+                    <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
+                      {isPlayerShort ? '9:16 Frame' : '16:9 Frame'}
+                    </span>
+                    <span className="text-xs font-bold text-white truncate">
+                      {playingVideo.title}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Toggle Player Mode (YouTube vs Direct HTML5) */}
+                    <button
+                      onClick={() => setUseDirectPlayer(!useDirectPlayer)}
+                      className="px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 text-[10px] font-bold hover:bg-cyan-500/30"
+                      title="প্লেয়ার পরিবর্তন করুন"
+                    >
+                      {useDirectPlayer ? 'YouTube প্লেয়ার' : 'ডাইরেক্ট প্লেয়ার'}
+                    </button>
+
+                    {/* Aspect Ratio Switcher */}
+                    <button
+                      onClick={() => setIsPlayerShort(!isPlayerShort)}
+                      className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold"
+                    >
+                      {isPlayerShort ? '16:9 ফ্রেম' : '9:16 ফ্রেম'}
+                    </button>
+
+                    {/* Ad Countdown Timer */}
+                    {adActive ? (
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-black font-mono animate-pulse">
+                        অ্যাড: {adCountdown}s (৫ পয়েন্ট)
+                      </span>
+                    ) : adRewarded ? (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 fill-emerald-500 text-black" />
+                        +৫ পয়েন্ট অর্জিত
+                      </span>
+                    ) : null}
+
+                    {/* Exit Cross Button */}
+                    <button
+                      onClick={() => setPlayingVideo(null)}
+                      className="p-1.5 rounded-xl bg-white/10 hover:bg-red-600 text-white transition-colors"
+                      title="ভিডিও বন্ধ করুন (✕)"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Video Container (YouTube or Direct HTML5) */}
+                <div className="relative flex-1 w-full bg-black flex items-center justify-center overflow-hidden">
+                  {useDirectPlayer ? (
+                    <video
+                      controls
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-contain"
+                      src={playingVideo.sampleVideoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                    />
+                  ) : (
+                    <iframe
+                      className="w-full h-full border-0"
+                      src={`https://www.youtube.com/embed/${playingVideo.youtubeId}?autoplay=1&enablejsapi=1&rel=0&playsinline=1&controls=1${window.location.protocol.startsWith('http') && window.location.origin && window.location.origin !== 'null' ? '&origin=' + encodeURIComponent(window.location.origin) : ''}`}
+                      title={playingVideo.title}
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  )}
+
+                  {/* Watermark */}
+                  <div className="absolute top-3 left-3 pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[10px] text-white">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="font-bold">Amazing Monetiz</span>
+                  </div>
+                </div>
+
+                {/* Bottom Bar Info */}
+                <div className="p-3 bg-[#070b16] border-t border-white/5 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-cyan-400" />
+                    <span className="font-bold text-white">{playingVideo.publisherName}</span>
+                    {playingVideo.publisherVerified && (
+                      <CheckCircle2 className="w-3.5 h-3.5 fill-emerald-500 text-black" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`https://www.youtube.com/watch?v=${playingVideo.youtubeId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] text-red-400 hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>YouTube-এ খুলুন</span>
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* UPLOAD MODAL */}
+          {showUploadModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <div className="relative w-full max-w-lg bg-[#0c1224] border border-white/15 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-cyan-400" />
+                    <span>নতুন ভিডিও বা শর্টস আপলোড করুন</span>
+                  </h3>
+                  <button onClick={() => setShowUploadModal(false)} className="text-slate-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleUploadSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">ভিডিওর শিরোনাম (Title)</label>
+                    <input
+                      type="text"
+                      required
+                      value={uploadTitle}
+                      onChange={(e) => setUploadTitle(e.target.value)}
+                      placeholder="যেমন: Bangla New Natok 2026..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">ইউটিউব ভিডিও বা শর্টস লিঙ্ক (YouTube URL)</label>
+                    <input
+                      type="url"
+                      required
+                      value={uploadUrl}
+                      onChange={(e) => setUploadUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=... অথবা https://youtu.be/..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-300 block mb-1">ক্যাটাগরি</label>
+                      <select
+                        value={uploadCat}
+                        onChange={(e) => setUploadCat(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-[#090d1a] border border-white/10 text-xs text-white focus:outline-none"
+                      >
+                        <option value="Drama">নাটক (Drama)</option>
+                        <option value="Songs">গান (Songs)</option>
+                        <option value="Islamic / Waz">ইসলামিক ওয়াজ</option>
+                        <option value="News & History">সংবাদ ও ইতিহাস</option>
+                        <option value="Entertainment">বিনোদন</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-slate-300 block mb-1">ফ্রেম টাইপ</label>
+                      <select
+                        value={uploadIsShort ? 'short' : 'video'}
+                        onChange={(e) => setUploadIsShort(e.target.value === 'short')}
+                        className="w-full px-3 py-2 rounded-xl bg-[#090d1a] border border-white/10 text-xs text-white focus:outline-none"
+                      >
+                        <option value="video">বড় ভিডিও (16:9 Widescreen)</option>
+                        <option value="short">শর্টস / রিলস (9:16 Vertical)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300">
+                    প্রতিটি সফল ভিডিও পাবলিশে পাবেন <strong>+১০ পয়েন্ট রিওয়ার্ড</strong>।
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold text-xs shadow-lg active:scale-95 transition-all"
+                  >
+                    পাবলিশ সম্পন্ন করুন (+১০ পয়েন্ট)
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* VERIFIED BADGE MODAL */}
+          {showVerifiedModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <div className="relative w-full max-w-md bg-[#0c1224] border border-white/15 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <BadgeCheck className="w-5 h-5 text-amber-400" />
+                    <span>ভেরিফাইড ব্যাচ রেট ও আবেদন</span>
+                  </h3>
+                  <button onClick={() => setShowVerifiedModal(false)} className="text-slate-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex justify-between items-center">
+                    <div>
+                      <div className="text-xs font-bold text-amber-300">১ মাস মেয়াদ</div>
+                      <div className="text-lg font-black text-white">৩০০ টাকা (300 BDT)</div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded font-bold">Standard</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex justify-between items-center">
+                    <div>
+                      <div className="text-xs font-bold text-emerald-300">৬ মাস মেয়াদ (সেভ ৩০০ টাকা)</div>
+                      <div className="text-lg font-black text-white">১৫০০ টাকা (1500 BDT)</div>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold">Popular</span>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1.5 font-mono">
+                    <div className="text-slate-300 font-bold mb-1">পেমেন্ট মেথড:</div>
+                    <div>bKash (Personal): <strong className="text-pink-400">01912-345678</strong></div>
+                    <div>Nagad (Merchant): <strong className="text-orange-400">01712-345678</strong></div>
+                    <div>Binance Pay ID: <strong className="text-yellow-400">87654321</strong></div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setCurrentUser(u => ({ ...u, isVerified: true }));
+                      setShowVerifiedModal(false);
+                      triggerNotification("অভিনন্দন! ভেরিফাইড ব্যাচ সফলভাবে যুক্ত হয়েছে!");
+                    }}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-xs shadow-lg active:scale-95 transition-all mt-2"
+                  >
+                    ভেরিফাইড ব্যাচ সক্রিয় করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ADMIN LOGIN MODAL */}
+          {showAdminLoginModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <div className="relative w-full max-w-sm bg-[#0c1224] border border-cyan-500/40 rounded-3xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-cyan-400" />
+                    <span>এডমিন লগইন</span>
+                  </h3>
+                  <button onClick={() => setShowAdminLoginModal(false)} className="text-slate-400 hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (adminPass === '1234' || adminPass === 'bahadur@2025#' || adminPass === 'admin') {
+                      setRole('admin');
+                      setActiveTab('admin_overview');
+                      setShowAdminLoginModal(false);
+                      setAdminPass('');
+                      triggerNotification("এডমিন প্যানেলে স্বাগতম!");
+                    } else {
+                      alert("ভুল পাসওয়ার্ড! সঠিক এডমিন পাসওয়ার্ড দিন (ডিফল্ট: 1234)");
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">এডমিন পাসওয়ার্ড / পিন</label>
+                    <input
+                      type="password"
+                      required
+                      value={adminPass}
+                      onChange={(e) => setAdminPass(e.target.value)}
+                      placeholder="পাসওয়ার্ড বা পিন লিখুন..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">ডিফল্ট পাসওয়ার্ড: 1234</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs shadow-lg active:scale-95 transition-all"
+                  >
+                    লগইন করুন
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* 6-TAB FIXED BOTTOM NAVIGATION BAR WITH REELS BUTTON */}
+          <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#070b16]/98 backdrop-blur-2xl border-t border-white/10 px-1 py-1.5 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+            <div className="max-w-lg mx-auto grid grid-cols-6 items-center justify-around gap-1">
+              
+              {/* Home */}
+              <button
+                onClick={() => { setActiveTab('home'); setRole('user'); }}
+                className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-95 ${activeTab === 'home' && role !== 'admin' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Home className="w-5 h-5 mb-0.5" />
+                <span className="text-[9.5px]">হোম</span>
+              </button>
+
+              {/* Reels (রিলস) */}
+              <button
+                onClick={() => { setActiveTab('reels'); setRole('user'); }}
+                className={`relative flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-95 ${activeTab === 'reels' ? 'text-red-400 font-black' : 'text-red-400/80 hover:text-red-300'}`}
+              >
+                {activeTab === 'reels' && (
+                  <div className="absolute -top-1.5 w-6 h-1 rounded-full bg-gradient-to-r from-red-500 to-pink-500 animate-pulse" />
+                )}
+                <div className={`p-1 rounded-lg ${activeTab === 'reels' ? 'bg-red-500/20 border border-red-500/40' : ''}`}>
+                  <Smartphone className="w-4 h-4 text-red-500" />
+                </div>
+                <span className="text-[9.5px] font-bold text-red-400">রিলস</span>
+              </button>
+
+              {/* Drama */}
+              <button
+                onClick={() => { setActiveTab('drama'); setRole('user'); }}
+                className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-95 ${activeTab === 'drama' ? 'text-violet-400 font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Film className="w-5 h-5 mb-0.5" />
+                <span className="text-[9.5px]">নাটক</span>
+              </button>
+
+              {/* Songs */}
+              <button
+                onClick={() => { setActiveTab('songs'); setRole('user'); }}
+                className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-95 ${activeTab === 'songs' ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Music className="w-5 h-5 mb-0.5" />
+                <span className="text-[9.5px]">গান</span>
+              </button>
+
+              {/* My Videos (পাবলিশার চ্যানেল) */}
+              <button
+                onClick={() => { setActiveTab('my-videos'); setRole('user'); }}
+                className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-95 ${activeTab === 'my-videos' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-white'}`}
+              >
+                <UserCheck className="w-5 h-5 mb-0.5" />
+                <span className="text-[9.5px]">চ্যানেল</span>
+              </button>
+
+              {/* Profile / Admin Access (Only lock icon, no text) */}
+              <button
+                onClick={() => setShowAdminLoginModal(true)}
+                className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-95 ${role === 'admin' ? 'text-red-500 font-bold' : 'text-slate-400 hover:text-white'}`}
+                title="Admin Control"
+                aria-label="Admin"
+              >
+                <Lock className="w-5 h-5" />
+              </button>
+
+            </div>
+          </nav>
+
+          {/* Footer & Policies */}
+          <footer className="mt-auto border-t border-white/10 bg-[#04060d] py-6 text-xs text-slate-400">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="font-bold text-white">Amazing Monetiz &copy; 2026</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">@Amazing Monetiz all Right · সবুজ টিক চিহ্নিত অফিশিয়াল প্ল্যাটফর্ম পলিসি ও কপিরাইট সুরক্ষিত।</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 text-[11px]">
+                <span className="flex items-center gap-1 text-slate-300">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  মনিটাইজেশন পলিসি
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  চিলড্রেন পলিসি
+                </span>
+                <span className="flex items-center gap-1 text-slate-300">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  প্রাইভেসি পলিসি
+                </span>
+              </div>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    // Mount React App safely
+    const container = document.getElementById('root');
+    if (ReactDOM.createRoot) {
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
+    } else {
+      ReactDOM.render(<App />, container);
+    }
+  </script>
+</body>
+</html>
